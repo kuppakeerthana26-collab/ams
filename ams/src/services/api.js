@@ -29,6 +29,13 @@ export const api = {
   createStudent: (body) => request('/students', { method: 'POST', body: JSON.stringify(body) }),
   attendanceRegister: (params) => request(`/attendance/register?${new URLSearchParams(params)}`),
   submitAttendance: (body) => request('/attendance/submit', { method: 'POST', body: JSON.stringify(body) }),
+  downloadAttendanceSheet: async (params = {}) => {
+    const response = await fetch(`${API_BASE_URL}/attendance/download?${new URLSearchParams(params)}`, {
+      headers: getToken() ? { Authorization: `Bearer ${getToken()}` } : {},
+    })
+    if (!response.ok) throw new Error('Unable to download attendance sheet')
+    return response.blob()
+  },
   statistics: (params = {}) => request(`/admin/statistics?${new URLSearchParams(params)}`),
   absentees: (params = {}) => request(`/admin/absentees?${new URLSearchParams(params)}`),
   downloadReport: async (params = {}) => {

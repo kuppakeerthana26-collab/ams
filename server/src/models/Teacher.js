@@ -22,10 +22,9 @@ const teacherSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-teacherSchema.pre("save", async function hashPassword(next) {
-  if (!this.isModified("password")) return next();
+teacherSchema.pre("save", async function hashPassword() {
+  if (!this.isModified("password")) return;
   this.password = await bcrypt.hash(this.password, 12);
-  next();
 });
 
 teacherSchema.methods.matchPassword = function matchPassword(password) {

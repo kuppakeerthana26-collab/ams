@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import Teacher from "../models/Teacher.js";
+import Hod from "../models/Hod.js";
 import { env } from "../config/env.js";
 
 export const protect = async (req, _res, next) => {
@@ -14,7 +15,8 @@ export const protect = async (req, _res, next) => {
     }
 
     const decoded = jwt.verify(token, env.JWT_SECRET);
-    const user = await Teacher.findById(decoded.id).select("-password");
+    const UserModel = decoded.role === "hod" ? Hod : Teacher;
+    const user = await UserModel.findById(decoded.id).select("-password");
 
     if (!user || !user.isActive) {
       const error = new Error("User account is not active");
@@ -31,6 +33,10 @@ export const protect = async (req, _res, next) => {
 };
 
 export const authorize = (...roles) => (req, _res, next) => {
+  if (req.user.role === "hod") {
+    return next();
+  }
+
   if (!roles.includes(req.user.role)) {
     const error = new Error("You do not have permission for this action");
     error.statusCode = 403;

@@ -3,6 +3,23 @@ import { env } from "../config/env.js";
 
 const header = ["Roll No", "Name", ...Array.from({ length: 31 }, (_value, index) => String(index + 1))];
 
+export const getColumnLetter = (columnIndex) => {
+  if (!Number.isInteger(columnIndex) || columnIndex < 1) {
+    throw new Error("Column index must be a positive integer");
+  }
+
+  let letter = "";
+  let index = columnIndex;
+
+  while (index > 0) {
+    const remainder = (index - 1) % 26;
+    letter = String.fromCharCode(65 + remainder) + letter;
+    index = Math.floor((index - remainder) / 26);
+  }
+
+  return letter;
+};
+
 const getSheetsClient = () => {
   if (!env.GOOGLE_SHEETS_SPREADSHEET_ID || !env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !env.GOOGLE_PRIVATE_KEY) {
     const error = new Error("Google Sheets credentials are not configured");
@@ -57,7 +74,7 @@ export const updateDayColumn = async ({ sheetTitle, students, day, entries }) =>
   const entryByStudent = new Map(entries.map((entry) => [String(entry.student), entry.status]));
   const values = students.map((student) => [entryByStudent.get(String(student._id)) || ""]);
   const columnIndex = day + 2;
-  const columnLetter = String.fromCharCode("A".charCodeAt(0) + columnIndex - 1);
+  const columnLetter = getColumnLetter(columnIndex);
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: env.GOOGLE_SHEETS_SPREADSHEET_ID,

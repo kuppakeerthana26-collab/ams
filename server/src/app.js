@@ -12,13 +12,21 @@ import { env } from "./config/env.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorMiddleware.js";
 
 const app = express();
+const allowedOrigins = new Set([env.CLIENT_ORIGIN, "http://localhost:5173", "http://127.0.0.1:5173"]);
 
 app.set("trust proxy", 1);
 app.use(helmet());
 app.use(compression());
 app.use(
   cors({
-    origin: env.CLIENT_ORIGIN,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.has(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   }),
 );

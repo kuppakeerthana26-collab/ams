@@ -49,6 +49,34 @@ export const getRegister = asyncHandler(async (req, res) => {
   });
 });
 
+export const downloadAttendanceSheet = asyncHandler(async (req, res) => {
+  const className = req.query.className || buildClassName(req.user.assignedClass || {});
+  const date = normalizeDate(req.query.date);
+
+  if (!className) {
+    const error = new Error("className is required");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const [submission, students] = await Promise.all([
+    AttendanceSubmission.findOne({ className, date }),
+    Student.find({ className, isActive: true }).sort({ rollNo: 1 }),
+  ]);
+
+  const statusByStudent = new Map((submission?.entries || []).map((entry) => [String(entry.student), entry.status]));
+  const lines = ["Roll No,Name,Class,Date,Status"];
+
+  students.forEach((student) => {
+    const status = statusByStudent.get(String(student._id)) || "Not Marked";
+    lines.push(`${student.rollNo},"${student.name.replaceAll('"', '""')}",${className},${date},${status}`);
+  });
+
+  res.setHeader("Content-Type", "text/csv");
+  res.setHeader("Content-Disposition", `attachment; filename=${className}-${date}-attendance.csv`);
+  res.send(lines.join("\n"));
+});
+
 export const submitAttendance = asyncHandler(async (req, res) => {
   const date = normalizeDate(req.body.date);
   const className = req.body.className;

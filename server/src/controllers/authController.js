@@ -1,5 +1,6 @@
 import { z } from "zod";
 import Teacher from "../models/Teacher.js";
+import Hod from "../models/Hod.js";
 import generateToken from "../utils/generateToken.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { logAudit } from "../services/auditService.js";
@@ -19,11 +20,18 @@ const publicUser = (user) => ({
   email: user.email,
   role: user.role,
   assignedClass: user.assignedClass,
+  department: user.department,
 });
 
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  const user = await Teacher.findOne({ email }).select("+password");
+  let user = await Teacher.findOne({ email }).select("+password");
+  let entity = "Teacher";
+
+  if (!user) {
+    user = await Hod.findOne({ email }).select("+password");
+    entity = "Hod";
+  }
 
   if (!user || !(await user.matchPassword(password))) {
     const error = new Error("Invalid email or password");
@@ -31,7 +39,7 @@ export const login = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  await logAudit({ actor: user._id, action: "LOGIN", entity: "Teacher", entityId: String(user._id) });
+  await logAudit({ actor: user._id, action: "LOGIN", entity, entityId: String(user._id) });
 
   res.json({
     success: true,
