@@ -1,12 +1,35 @@
 import dotenv from "dotenv";
 import { z } from "zod";
+import fs from "fs";
+import path from "path";
 
 dotenv.config();
+
+let serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || "";
+let serviceAccountPrivateKey = process.env.GOOGLE_PRIVATE_KEY || "";
+
+const keyPath = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_PATH;
+if (keyPath && (!serviceAccountEmail || !serviceAccountPrivateKey)) {
+  try {
+    const resolvedPath = path.resolve(process.cwd(), keyPath);
+    if (fs.existsSync(resolvedPath)) {
+      const credentials = JSON.parse(fs.readFileSync(resolvedPath, "utf8"));
+      serviceAccountEmail = credentials.client_email || "";
+      serviceAccountPrivateKey = credentials.private_key || "";
+    }
+  } catch (err) {
+    console.error("Failed to load service account credentials from key file path:", err);
+  }
+}
 
 const rawEnv = {
   ...process.env,
   MONGO_URI: process.env.MONGO_URI || process.env.MONGO_URL || process.env.MONGODB_URI,
   TEACHER_REGISTRATION_CODE: process.env.TEACHER_REGISTRATION_CODE || process.env.SECRET_CODE,
+  GOOGLE_SERVICE_ACCOUNT_EMAIL: serviceAccountEmail,
+  GOOGLE_PRIVATE_KEY: serviceAccountPrivateKey,
+  META_WHATSAPP_TOKEN: process.env.META_WHATSAPP_TOKEN || process.env.WHATSAPP_PERMANENT_TOKEN || "",
+  META_PHONE_NUMBER_ID: process.env.META_PHONE_NUMBER_ID || process.env.WHATSAPP_TEST_NUMBER || "",
 };
 
 const envSchema = z.object({

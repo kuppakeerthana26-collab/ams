@@ -1,9 +1,12 @@
 import './TeacherCard.css'
 
 function TeacherCard({ teacher, onLogout }) {
-  if (!teacher) {
-    return null
-  }
+  // Handle both the legacy nested structure and the new flattened one
+  const assignedClass = teacher?.assignedClass
+    ? teacher.assignedClass
+    : teacher?.branch && teacher?.year && teacher?.section
+      ? { branch: teacher.branch, year: teacher.year, section: teacher.section }
+      : null
 
   return (
     <section className="teacher-card">

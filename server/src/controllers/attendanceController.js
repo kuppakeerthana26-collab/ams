@@ -59,21 +59,53 @@ export const downloadAttendanceSheet = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  const [submission, students] = await Promise.all([
-    AttendanceSubmission.findOne({ className, date }),
+  const { month, year, monthName } = getMonthMeta(date);
+
+  const [submissions, students] = await Promise.all([
+    AttendanceSubmission.find({ className, month, year }),
     Student.find({ className, isActive: true }).sort({ rollNo: 1 }),
   ]);
 
-  const statusByStudent = new Map((submission?.entries || []).map((entry) => [String(entry.student), entry.status]));
-  const lines = ["Roll No,Name,Class,Date,Status"];
+  // Map of studentId -> Map of day -> status
+  const attendanceMap = new Map();
+  submissions.forEach((sub) => {
+    const day = sub.day;
+    sub.entries.forEach((entry) => {
+      const studentId = String(entry.student);
+      if (!attendanceMap.has(studentId)) {
+        attendanceMap.set(studentId, new Map());
+      }
+      attendanceMap.get(studentId).set(day, entry.status);
+    });
+  });
 
+  const lines = [];
+
+  // Header 1: Class Name, <val>, "", "Attendance Sheet", 29 columns
+  const headerRow1 = ["Class Name", className.replace(/_/g, " "), "", "Attendance Sheet", ...Array(29).fill("")];
+  lines.push(headerRow1.join(","));
+
+  // Header 2: Month, <val>, "", "Dates", 29 columns
+  const headerRow2 = ["Month", `${monthName} ${year}`, "", "Dates", ...Array(29).fill("")];
+  lines.push(headerRow2.join(","));
+
+  // Header 3: Roll No, Name, 1-31
+  const headerRow3 = ["Roll No", "Name", ...Array.from({ length: 31 }, (_, index) => String(index + 1))];
+  lines.push(headerRow3.join(","));
+
+  // Student rows
   students.forEach((student) => {
-    const status = statusByStudent.get(String(student._id)) || "Not Marked";
-    lines.push(`${student.rollNo},"${student.name.replaceAll('"', '""')}",${className},${date},${status}`);
+    const escapedName = `"${student.name.replaceAll('"', '""')}"`;
+    const row = [student.rollNo, escapedName];
+    for (let d = 1; d <= 31; d++) {
+      const status = attendanceMap.get(String(student._id))?.get(d) || "";
+      row.push(status);
+    }
+    lines.push(row.join(","));
   });
 
   res.setHeader("Content-Type", "text/csv");
-  res.setHeader("Content-Disposition", `attachment; filename=${className}-${date}-attendance.csv`);
+  res.setHeader("Content-Disposition", `attachment; filename=${className}-${monthName}-${year}-attendance.csv`);
   res.send(lines.join("\n"));
 });
 
