@@ -1,0 +1,40 @@
+import { StyleSheet } from "react-native";
+
+export const colors = {
+  navy: "#0f172a",
+  blue: "#2563eb",
+  green: "#15803d",
+  red: "#dc2626",
+  slate: "#475569",
+  border: "#dbe3ef",
+  background: "#f8fafc",
+  card: "#ffffff",
+};
+
+export const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.background },
+  content: { padding: 20, gap: 14 },
+  auth: { flex: 1, justifyContent: "center", padding: 24, backgroundColor: colors.navy },
+  authCard: { backgroundColor: colors.card, borderRadius: 18, padding: 22, gap: 14 },
+  title: { fontSize: 27, fontWeight: "800", color: colors.navy },
+  subtitle: { fontSize: 15, color: colors.slate, lineHeight: 22 },
+  label: { color: colors.navy, fontWeight: "700", marginBottom: -7 },
+  input: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: 13, fontSize: 16 },
+  button: { backgroundColor: colors.blue, padding: 14, borderRadius: 10, alignItems: "center" },
+  buttonText: { color: "white", fontWeight: "800", fontSize: 16 },
+  secondaryButton: { backgroundColor: "#e8efff" },
+  secondaryText: { color: colors.blue, fontWeight: "800", textAlign: "center" },
+  card: { backgroundColor: colors.card, borderRadius: 14, padding: 16, gap: 9, borderWidth: 1, borderColor: colors.border },
+  row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
+  name: { fontSize: 16, color: colors.navy, fontWeight: "800" },
+  small: { color: colors.slate, fontSize: 13 },
+  tabBar: { flexDirection: "row", backgroundColor: colors.card, borderTopWidth: 1, borderColor: colors.border },
+  tab: { flex: 1, alignItems: "center", gap: 3, paddingVertical: 11 },
+  tabText: { fontSize: 12, color: colors.slate, fontWeight: "700" },
+  activeTab: { color: colors.blue },
+  pill: { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 999, overflow: "hidden" },
+  present: { backgroundColor: "#dcfce7", color: colors.green },
+  absent: { backgroundColor: "#fee2e2", color: colors.red },
+  metric: { flex: 1, backgroundColor: colors.card, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: colors.border },
+  metricValue: { fontSize: 25, fontWeight: "800", color: colors.navy },
+});

@@ -3,8 +3,7 @@ import AttendanceSubmission from "../models/AttendanceSubmission.js";
 import NotificationLog from "../models/NotificationLog.js";
 import Student from "../models/Student.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { buildSheetTitle } from "../utils/dateUtils.js";
-import { getSheetRows } from "../services/googleSheetsService.js";
+import { getSheetData, getSheetRows } from "../services/excelService.js";
 
 export const adminQuerySchema = z.object({
   body: z.object({}).optional(),
@@ -13,6 +12,7 @@ export const adminQuerySchema = z.object({
     className: z.string().optional(),
     date: z.string().optional(),
     search: z.string().optional(),
+    token: z.string().optional(),
   }),
 });
 
@@ -69,8 +69,8 @@ export const sheetRows = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  const rows = await getSheetRows(buildSheetTitle(req.query.className, req.query.date));
-  res.json({ success: true, rows });
+  const sheetData = await getSheetData({ className: req.query.className, date: req.query.date });
+  res.json({ success: true, ...sheetData });
 });
 
 export const downloadReport = asyncHandler(async (req, res) => {

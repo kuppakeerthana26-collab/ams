@@ -2,6 +2,7 @@ import express from "express";
 import {
   getAttendanceSchema,
   getRegister,
+  getSheet,
   downloadAttendanceSheet,
   submitAttendance,
   submitAttendanceSchema,
@@ -13,6 +14,7 @@ const router = express.Router();
 
 router.use(protect);
 router.get("/register", authorize("teacher", "admin", "hod"), validate(getAttendanceSchema), getRegister);
+router.get("/sheet", authorize("teacher", "admin", "hod"), validate(getAttendanceSchema), getSheet);
 router.get("/download", authorize("teacher", "admin", "hod"), validate(getAttendanceSchema), downloadAttendanceSheet);
 router.post("/submit", authorize("teacher", "admin", "hod"), validate(submitAttendanceSchema), submitAttendance);
 

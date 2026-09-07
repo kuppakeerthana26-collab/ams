@@ -1,33 +1,16 @@
 import dotenv from "dotenv";
 import { z } from "zod";
-import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 dotenv.config();
-
-let serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || "";
-let serviceAccountPrivateKey = process.env.GOOGLE_PRIVATE_KEY || "";
-
-const keyPath = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_PATH;
-if (keyPath && (!serviceAccountEmail || !serviceAccountPrivateKey)) {
-  try {
-    const resolvedPath = path.resolve(process.cwd(), keyPath);
-    if (fs.existsSync(resolvedPath)) {
-      const credentials = JSON.parse(fs.readFileSync(resolvedPath, "utf8"));
-      serviceAccountEmail = credentials.client_email || "";
-      serviceAccountPrivateKey = credentials.private_key || "";
-    }
-  } catch (err) {
-    console.error("Failed to load service account credentials from key file path:", err);
-  }
-}
 
 const rawEnv = {
   ...process.env,
   MONGO_URI: process.env.MONGO_URI || process.env.MONGO_URL || process.env.MONGODB_URI,
   TEACHER_REGISTRATION_CODE: process.env.TEACHER_REGISTRATION_CODE || process.env.SECRET_CODE,
-  GOOGLE_SERVICE_ACCOUNT_EMAIL: serviceAccountEmail,
-  GOOGLE_PRIVATE_KEY: serviceAccountPrivateKey,
   META_WHATSAPP_TOKEN: process.env.META_WHATSAPP_TOKEN || process.env.WHATSAPP_PERMANENT_TOKEN || "",
   META_PHONE_NUMBER_ID: process.env.META_PHONE_NUMBER_ID || process.env.WHATSAPP_TEST_NUMBER || "",
 };
@@ -48,9 +31,7 @@ const envSchema = z.object({
   SEED_HOD_EMAIL: z.string().email().optional(),
   SEED_HOD_PASSWORD: z.string().min(8).optional(),
   SEED_HOD_DEPARTMENT: z.string().optional().default(""),
-  GOOGLE_SHEETS_SPREADSHEET_ID: z.string().optional().default(""),
-  GOOGLE_SERVICE_ACCOUNT_EMAIL: z.string().optional().default(""),
-  GOOGLE_PRIVATE_KEY: z.string().optional().default(""),
+  ATTENDANCE_WORKBOOK_PATH: z.string().default("data/attendance-register.xlsx"),
   META_WHATSAPP_TOKEN: z.string().optional().default(""),
   META_PHONE_NUMBER_ID: z.string().optional().default(""),
   META_WHATSAPP_API_VERSION: z.string().default("v20.0"),

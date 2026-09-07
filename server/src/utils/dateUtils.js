@@ -43,5 +43,8 @@ export const buildClassName = ({ branch, year, section, className }) => {
 
 export const buildSheetTitle = (className, dateString) => {
   const { monthName, year } = getMonthMeta(dateString);
-  return `${className}_${monthName}_${year}`.replace(/\s+/g, "_");
+  const suffix = `_${monthName}_${year}`;
+  const safeClassName = className.replace(/[\\/:*?\[\]]/g, "_").replace(/\s+/g, "_");
+  // Excel worksheet names are limited to 31 characters.
+  return `${safeClassName.slice(0, 31 - suffix.length)}${suffix}`;
 };

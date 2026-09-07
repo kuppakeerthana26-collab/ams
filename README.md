@@ -1,6 +1,6 @@
 # College Attendance Management System
 
-Production-oriented AMS for colleges with a React mobile UI, Express API, MongoDB users/students, Google Sheets attendance storage, JWT authentication, and Official Meta WhatsApp absentee alerts.
+Production-oriented AMS for colleges with a React mobile UI, Express API, MongoDB users/students, Excel attendance registers, JWT authentication, and Official Meta WhatsApp absentee alerts.
 
 ## Folder Structure
 
@@ -15,7 +15,7 @@ server/
     middleware/         auth, roles, validation, errors
     models/             Mongoose schemas
     routes/             API route modules
-    services/           Google Sheets, WhatsApp, audit, retries
+    services/           Excel, WhatsApp, audit, retries
     utils/              token/date helpers
 ```
 
@@ -24,11 +24,11 @@ server/
 - Teacher/admin JWT login and role-based access.
 - MongoDB teacher and student records.
 - Mobile-friendly attendance register: `Roll No | Name | 1 | 2 | ... | 31`.
-- One Google Sheet tab per class per month, for example `CSE_1_A_April_2026`.
+- One Excel worksheet per class per month, for example `CSE_1_A_April_2026`.
 - Duplicate submission prevention with date-level attendance lock.
 - Automatic absentee detection and WhatsApp Business API notifications.
 - Failed message logging and retry loop.
-- Admin statistics, student search, absentee history, and CSV report download.
+- Admin statistics, student search, absentee history, Excel register download, and CSV report download.
 - Helmet, CORS, rate limiting, Zod validation, audit logs, and centralized errors.
 
 ## Local Setup
@@ -52,7 +52,7 @@ cp ams/.env.example ams/.env
 - `MONGO_URI`
 - a long `JWT_SECRET`
 - teacher/admin registration codes
-- Google service account credentials
+- optional `ATTENDANCE_WORKBOOK_PATH` (defaults to `data/attendance-register.xlsx`)
 - Meta WhatsApp token and phone number ID
 
 4. Run the backend:
@@ -71,13 +71,9 @@ npm run dev
 
 Open `http://localhost:5173`.
 
-## Google Sheets Setup
+## Excel Attendance Register
 
-1. Create a Google Cloud service account.
-2. Enable Google Sheets API.
-3. Create a spreadsheet for attendance.
-4. Share that spreadsheet with the service account email as Editor.
-5. Put the spreadsheet ID, service account email, and private key in `server/.env`.
+Attendance is written to `server/data/attendance-register.xlsx` by default. Each class/month has its own worksheet, with `Roll No`, `Name`, and day columns 1 through 31. Set `ATTENDANCE_WORKBOOK_PATH` in `server/.env` to store the workbook elsewhere.
 
 ## Meta WhatsApp Setup
 

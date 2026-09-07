@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "GKCE AMS",
+    "slug": "gkce-ams",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0b1120"
+    },
+    "android": {
+      "package": "com.college.attendancemonitor",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0b1120"
+      },
+      "usesCleartextTraffic": true,
+      "permissions": [
+        "android.permission.SEND_SMS",
+        "android.permission.READ_PHONE_STATE",
+        "android.permission.CALL_PHONE"
+      ]
+    },
+    "ios": {
+      "bundleIdentifier": "com.college.attendancemonitor"
+    },
+    "plugins": [
+      "expo-status-bar"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "f6148338-7427-4904-bd6f-4903f9c07c55"
+      }
+    }
+  }
+}

@@ -3,7 +3,7 @@ import AttendanceSubmission from "../models/AttendanceSubmission.js";
 import Student from "../models/Student.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { buildClassName, buildSheetTitle, getMonthMeta, normalizeDate } from "../utils/dateUtils.js";
-import { updateDayColumn } from "../services/googleSheetsService.js";
+import { getMonthlySheetBuffer, getSheetData, updateDayColumn } from "../services/excelService.js";
 import { createAndSendAbsenceNotifications } from "../services/notificationService.js";
 import { logAudit } from "../services/auditService.js";
 
@@ -28,8 +28,9 @@ export const getAttendanceSchema = z.object({
   body: z.object({}).optional(),
   params: z.object({}).optional(),
   query: z.object({
-    className: z.string().min(1),
+    className: z.string().optional(),
     date: z.string().optional(),
+    token: z.string().optional(),
   }),
 });
 
@@ -49,6 +50,20 @@ export const getRegister = asyncHandler(async (req, res) => {
   });
 });
 
+export const getSheet = asyncHandler(async (req, res) => {
+  const className = req.query.className || buildClassName(req.user.assignedClass || {});
+  const date = normalizeDate(req.query.date);
+
+  if (!className) {
+    const error = new Error("className is required");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const sheetData = await getSheetData({ className, date });
+  res.json({ success: true, ...sheetData });
+});
+
 export const downloadAttendanceSheet = asyncHandler(async (req, res) => {
   const className = req.query.className || buildClassName(req.user.assignedClass || {});
   const date = normalizeDate(req.query.date);
@@ -59,54 +74,19 @@ export const downloadAttendanceSheet = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  const { month, year, monthName } = getMonthMeta(date);
+  const { monthName, year } = getMonthMeta(date);
+  const sheetTitle = buildSheetTitle(className, date);
+  const buffer = await getMonthlySheetBuffer(sheetTitle, { className, date });
 
-  const [submissions, students] = await Promise.all([
-    AttendanceSubmission.find({ className, month, year }),
-    Student.find({ className, isActive: true }).sort({ rollNo: 1 }),
-  ]);
+  if (!buffer) {
+    const error = new Error("No attendance workbook could be generated for this class and month");
+    error.statusCode = 404;
+    throw error;
+  }
 
-  // Map of studentId -> Map of day -> status
-  const attendanceMap = new Map();
-  submissions.forEach((sub) => {
-    const day = sub.day;
-    sub.entries.forEach((entry) => {
-      const studentId = String(entry.student);
-      if (!attendanceMap.has(studentId)) {
-        attendanceMap.set(studentId, new Map());
-      }
-      attendanceMap.get(studentId).set(day, entry.status);
-    });
-  });
-
-  const lines = [];
-
-  // Header 1: Class Name, <val>, "", "Attendance Sheet", 29 columns
-  const headerRow1 = ["Class Name", className.replace(/_/g, " "), "", "Attendance Sheet", ...Array(29).fill("")];
-  lines.push(headerRow1.join(","));
-
-  // Header 2: Month, <val>, "", "Dates", 29 columns
-  const headerRow2 = ["Month", `${monthName} ${year}`, "", "Dates", ...Array(29).fill("")];
-  lines.push(headerRow2.join(","));
-
-  // Header 3: Roll No, Name, 1-31
-  const headerRow3 = ["Roll No", "Name", ...Array.from({ length: 31 }, (_, index) => String(index + 1))];
-  lines.push(headerRow3.join(","));
-
-  // Student rows
-  students.forEach((student) => {
-    const escapedName = `"${student.name.replaceAll('"', '""')}"`;
-    const row = [student.rollNo, escapedName];
-    for (let d = 1; d <= 31; d++) {
-      const status = attendanceMap.get(String(student._id))?.get(d) || "";
-      row.push(status);
-    }
-    lines.push(row.join(","));
-  });
-
-  res.setHeader("Content-Type", "text/csv");
-  res.setHeader("Content-Disposition", `attachment; filename=${className}-${monthName}-${year}-attendance.csv`);
-  res.send(lines.join("\n"));
+  res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+  res.setHeader("Content-Disposition", `attachment; filename=${className}-${monthName}-${year}-attendance.xlsx`);
+  res.send(Buffer.from(buffer));
 });
 
 export const submitAttendance = asyncHandler(async (req, res) => {
@@ -139,7 +119,7 @@ export const submitAttendance = asyncHandler(async (req, res) => {
 
   const { month, year, day } = getMonthMeta(date);
   const sheetTitle = buildSheetTitle(className, date);
-  await updateDayColumn({ sheetTitle, students, day, entries });
+  await updateDayColumn({ sheetTitle, students, day, entries, className, date });
 
   const submission = await AttendanceSubmission.create({
     className,
