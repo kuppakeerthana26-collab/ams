@@ -10,9 +10,9 @@ import {
 
 const router = express.Router();
 
-// Public Parent Auth & Device Binding endpoints
-router.post("/auth/request-otp", requestOtp);
-router.post("/auth/verify-otp", verifyOtpAndBindDevice);
+// Public Parent Auth & Device Binding endpoints (Supports both POST and GET)
+router.route("/auth/request-otp").get(requestOtp).post(requestOtp);
+router.route("/auth/verify-otp").get(verifyOtpAndBindDevice).post(verifyOtpAndBindDevice);
 
 // Protected Parent Endpoints (Requires valid Parent JWT + Device Match)
 router.get("/wards", protectParent, getWards);

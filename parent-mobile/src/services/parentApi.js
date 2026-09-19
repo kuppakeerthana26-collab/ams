@@ -3,9 +3,9 @@ import { Platform } from "react-native";
 
 const STORAGE_KEY_API_URL = "@gkce_parent_api_url";
 
-// Default HTTPS tunnel endpoint - prevents Android CLEARTEXT policy violations
+// Default local Wi-Fi endpoint on port 3000
 const DEFAULT_URL = (
-  process.env.EXPO_PUBLIC_API_URL || "https://gkce-ams-parent.loca.lt"
+  process.env.EXPO_PUBLIC_API_URL || "http://192.168.137.110:3000"
 ).replace(/\/$/, "");
 
 let cachedApiUrl = null;

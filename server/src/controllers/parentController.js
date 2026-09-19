@@ -13,8 +13,24 @@ const cleanPhoneNumber = (phone = "") => String(phone).replace(/[^0-9+]/g, "").t
  * POST /api/parent/auth/request-otp
  */
 export const requestOtp = asyncHandler(async (req, res) => {
-  const { phone } = req.body;
+  const phone = req.body?.phone || req.query?.phone;
+
   if (!phone) {
+    if (req.method === "GET") {
+      return res.json({
+        success: true,
+        service: "GKCE AMS Parent Authentication API",
+        status: "ONLINE",
+        endpoint: "/api/parent/auth/request-otp",
+        description: "Submit parent mobile number to receive 6-digit OTP and bind hardware device.",
+        usage: {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: { phone: "+919876543210" },
+        },
+        demoPhone: "+919876543210",
+      });
+    }
     const error = new Error("Mobile number is required");
     error.statusCode = 400;
     throw error;
@@ -66,9 +82,25 @@ export const requestOtp = asyncHandler(async (req, res) => {
  * POST /api/parent/auth/verify-otp
  */
 export const verifyOtpAndBindDevice = asyncHandler(async (req, res) => {
-  const { phone, otp, deviceId, deviceModel = "Parent Smartphone" } = req.body;
+  const phone = req.body?.phone || req.query?.phone;
+  const otp = req.body?.otp || req.query?.otp;
+  const deviceId = req.body?.deviceId || req.query?.deviceId;
+  const deviceModel = req.body?.deviceModel || req.query?.deviceModel || "Parent Smartphone";
 
   if (!phone || !otp || !deviceId) {
+    if (req.method === "GET") {
+      return res.json({
+        success: true,
+        service: "GKCE AMS Parent OTP Verification & Device Binding API",
+        status: "ONLINE",
+        endpoint: "/api/parent/auth/verify-otp",
+        usage: {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: { phone: "+919876543210", otp: "123456", deviceId: "DEV_HARDWARE_ID" },
+        },
+      });
+    }
     const error = new Error("Phone number, OTP, and Device Hardware ID are required");
     error.statusCode = 400;
     throw error;

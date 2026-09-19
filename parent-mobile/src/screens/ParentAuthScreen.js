@@ -327,12 +327,12 @@ export const ParentAuthScreen = () => {
               <TouchableOpacity
                 style={[
                   styles.presetItem,
-                  apiUrl.includes("loca.lt") ? styles.presetItemActive : null,
+                  apiUrl.includes("192.168.137.110") ? styles.presetItemActive : null,
                 ]}
-                onPress={() => handleSaveServerUrl("https://gkce-ams-parent.loca.lt")}
+                onPress={() => handleSaveServerUrl("http://192.168.137.110:3000")}
               >
-                <Text style={styles.presetName}>🔒 Secure Cloud Tunnel (Recommended)</Text>
-                <Text style={styles.presetDesc}>https://gkce-ams-parent.loca.lt (Resolves cleartext policy)</Text>
+                <Text style={styles.presetName}>📶 Local Wi-Fi (Current PC IP - Recommended)</Text>
+                <Text style={styles.presetDesc}>http://192.168.137.110:3000</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -343,18 +343,18 @@ export const ParentAuthScreen = () => {
                 onPress={() => handleSaveServerUrl("http://10.0.2.2:3000")}
               >
                 <Text style={styles.presetName}>💻 Android Emulator Host</Text>
-                <Text style={styles.presetDesc}>http://10.0.2.2:3000 (Local emulator)</Text>
+                <Text style={styles.presetDesc}>http://10.0.2.2:3000 (For local PC emulator)</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[
                   styles.presetItem,
-                  apiUrl.includes("172.29.58.78") ? styles.presetItemActive : null,
+                  apiUrl.includes("loca.lt") ? styles.presetItemActive : null,
                 ]}
-                onPress={() => handleSaveServerUrl("http://172.29.58.78:3000")}
+                onPress={() => handleSaveServerUrl("https://gkce-ams-parent.loca.lt")}
               >
-                <Text style={styles.presetName}>📶 Local Wi-Fi (LAN)</Text>
-                <Text style={styles.presetDesc}>http://172.29.58.78:3000</Text>
+                <Text style={styles.presetName}>🔒 Cloud HTTPS Tunnel</Text>
+                <Text style={styles.presetDesc}>https://gkce-ams-parent.loca.lt</Text>
               </TouchableOpacity>
             </View>
 
