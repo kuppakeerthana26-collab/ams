@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "GKCE Parent AMS",
+    "slug": "gkce-parent-ams",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#090e17"
+    },
+    "android": {
+      "package": "com.college.attendancemanagement.parent",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#090e17"
+      },
+      "usesCleartextTraffic": true,
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.READ_PHONE_STATE",
+        "android.permission.CALL_PHONE"
+      ]
+    },
+    "ios": {
+      "bundleIdentifier": "com.college.attendancemanagement.parent"
+    },
+    "plugins": [
+      "expo-status-bar"
+    ]
+  }
+}
