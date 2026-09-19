@@ -1,6 +1,6 @@
 # GKCE AMS Mobile (React Native + Expo)
 
-Production-ready Expo React Native client for the GKCE Attendance Monitoring System backend.
+Production-ready Expo React Native client for the GKCE Attendance Management System backend.
 
 ## Features & Screens
 

@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const SESSION_KEY = "attendance-monitor-session";
+const SESSION_KEY = "attendance-management-session";
 
 export const loadSession = async () => {
   const value = await AsyncStorage.getItem(SESSION_KEY);

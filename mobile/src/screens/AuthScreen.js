@@ -92,7 +92,7 @@ export const AuthScreen = () => {
           </View>
           <Text style={styles.appName}>GKCE AMS</Text>
           <Text style={styles.appTagline}>
-            Gokula Krishna College of Engineering — Attendance Monitoring System
+            Gokula Krishna College of Engineering — Attendance Management System
           </Text>
         </View>
 

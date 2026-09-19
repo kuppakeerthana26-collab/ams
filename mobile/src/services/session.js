@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const SESSION_KEY = "attendance-monitor-session";
-const SERVER_URL_KEY = "attendance-monitor-server-url";
+const SESSION_KEY = "attendance-management-session";
+const SERVER_URL_KEY = "attendance-management-server-url";
 
 export const DEFAULT_API_URL = process.env.EXPO_PUBLIC_API_URL || "http://10.0.2.2:3000";
 

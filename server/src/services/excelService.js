@@ -588,7 +588,7 @@ export const getMonthlySheetBuffer = async (sheetTitle, { className, date } = {}
     // Build pristine export workbook
     const downloadWorkbook = new ExcelJS.Workbook();
     downloadWorkbook.creator = "Gokula Krishna College of Engineering (GKCE)";
-    downloadWorkbook.lastModifiedBy = "GKCE Attendance Monitoring System";
+    downloadWorkbook.lastModifiedBy = "GKCE Attendance Management System";
     downloadWorkbook.created = new Date();
     downloadWorkbook.modified = new Date();
 

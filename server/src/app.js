@@ -8,11 +8,20 @@ import authRoutes from "./routes/authRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
 import { env } from "./config/env.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorMiddleware.js";
 
 const app = express();
-const allowedOrigins = new Set([env.CLIENT_ORIGIN, "http://localhost:5173", "http://127.0.0.1:5173"]);
+const allowedOrigins = new Set([
+  env.CLIENT_ORIGIN,
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5174",
+  "http://localhost:3000",
+  "http://localhost:3001",
+]);
 
 app.set("trust proxy", 1);
 app.use(helmet());
@@ -20,7 +29,8 @@ app.use(compression());
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.has(origin)) {
+      // In non-production or matching origins, permit request
+      if (!origin || allowedOrigins.has(origin) || env.NODE_ENV !== "production") {
         callback(null, true);
         return;
       }
@@ -49,6 +59,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

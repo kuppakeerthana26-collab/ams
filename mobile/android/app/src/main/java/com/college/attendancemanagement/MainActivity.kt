@@ -1,4 +1,4 @@
-package com.college.attendancemonitor
+package com.college.attendancemanagement
 
 import android.os.Build
 import android.os.Bundle

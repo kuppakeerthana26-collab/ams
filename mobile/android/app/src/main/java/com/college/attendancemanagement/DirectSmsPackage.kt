@@ -1,4 +1,4 @@
-package com.college.attendancemonitor
+package com.college.attendancemanagement
 
 import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.NativeModule

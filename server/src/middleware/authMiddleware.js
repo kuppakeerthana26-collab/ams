@@ -37,14 +37,22 @@ export const protect = async (req, _res, next) => {
 };
 
 export const authorize = (...roles) => (req, _res, next) => {
-  if (req.user.role === "hod") {
+  const userRole = req.user.role;
+
+  // Super-admin / institutional management roles have full oversight
+  if (userRole === "admin" || userRole === "dean" || userRole === "principal") {
     return next();
   }
 
-  if (!roles.includes(req.user.role)) {
-    const error = new Error("You do not have permission for this action");
-    error.statusCode = 403;
-    return next(error);
+  if (roles.includes(userRole)) {
+    return next();
   }
-  next();
+
+  if (userRole === "hod" && roles.includes("teacher")) {
+    return next();
+  }
+
+  const error = new Error("You do not have permission for this action");
+  error.statusCode = 403;
+  return next(error);
 };
