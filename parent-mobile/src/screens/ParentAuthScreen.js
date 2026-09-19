@@ -30,13 +30,34 @@ export const ParentAuthScreen = () => {
   const [deviceId, setDeviceId] = useState("");
   const [isSimMode, setIsSimMode] = useState(false);
 
+  // Server Endpoint Configuration State
+  const [apiUrl, setApiUrl] = useState("https://gkce-ams-parent.loca.lt");
+  const [showServerModal, setShowServerModal] = useState(false);
+  const [tempUrl, setTempUrl] = useState("https://gkce-ams-parent.loca.lt");
+
   // Security Mismatch Alert Modal State
   const [showSecurityModal, setShowSecurityModal] = useState(false);
   const [securityModalText, setSecurityModalText] = useState("");
 
   useEffect(() => {
     loadDeviceStatus();
+    loadServerUrl();
   }, []);
+
+  const loadServerUrl = async () => {
+    const url = await parentApi.getApiUrl();
+    setApiUrl(url);
+    setTempUrl(url);
+  };
+
+  const handleSaveServerUrl = async (newUrl) => {
+    const target = newUrl !== undefined ? newUrl : tempUrl;
+    const updated = await parentApi.setCustomApiUrl(target);
+    setApiUrl(updated);
+    setTempUrl(updated);
+    setShowServerModal(false);
+    setErrorMessage("");
+  };
 
   const loadDeviceStatus = async () => {
     const id = await getDeviceId();
@@ -254,6 +275,24 @@ export const ParentAuthScreen = () => {
           </View>
         </View>
 
+        {/* Server Endpoint Configuration Banner */}
+        <TouchableOpacity
+          style={styles.serverSettingsCard}
+          onPress={() => setShowServerModal(true)}
+          activeOpacity={0.8}
+        >
+          <View style={styles.serverSettingsRow}>
+            <Text style={styles.serverSettingsIcon}>🌐</Text>
+            <View style={styles.serverSettingsDetails}>
+              <Text style={styles.serverSettingsTitle}>Backend Server Connection</Text>
+              <Text style={styles.serverSettingsUrl} numberOfLines={1}>
+                {apiUrl}
+              </Text>
+            </View>
+            <Text style={styles.serverSettingsAction}>Change ⚙️</Text>
+          </View>
+        </TouchableOpacity>
+
         {/* Testing / Demonstration Tool */}
         <View style={styles.simTestingBox}>
           <Text style={styles.simTestingTitle}>Security Demonstration Tool</Text>
@@ -272,6 +311,82 @@ export const ParentAuthScreen = () => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Server Endpoint Configuration Modal */}
+      <Modal visible={showServerModal} transparent={true} animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>SERVER CONNECTION</Text>
+            <Text style={styles.modalSubtitle}>Configure College Backend Endpoint</Text>
+
+            <Text style={styles.serverInstruction}>
+              Select a connection preset or enter your computer's server URL:
+            </Text>
+
+            <View style={styles.presetList}>
+              <TouchableOpacity
+                style={[
+                  styles.presetItem,
+                  apiUrl.includes("loca.lt") ? styles.presetItemActive : null,
+                ]}
+                onPress={() => handleSaveServerUrl("https://gkce-ams-parent.loca.lt")}
+              >
+                <Text style={styles.presetName}>🔒 Secure Cloud Tunnel (Recommended)</Text>
+                <Text style={styles.presetDesc}>https://gkce-ams-parent.loca.lt (Resolves cleartext policy)</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.presetItem,
+                  apiUrl.includes("10.0.2.2") ? styles.presetItemActive : null,
+                ]}
+                onPress={() => handleSaveServerUrl("http://10.0.2.2:3000")}
+              >
+                <Text style={styles.presetName}>💻 Android Emulator Host</Text>
+                <Text style={styles.presetDesc}>http://10.0.2.2:3000 (Local emulator)</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.presetItem,
+                  apiUrl.includes("172.29.58.78") ? styles.presetItemActive : null,
+                ]}
+                onPress={() => handleSaveServerUrl("http://172.29.58.78:3000")}
+              >
+                <Text style={styles.presetName}>📶 Local Wi-Fi (LAN)</Text>
+                <Text style={styles.presetDesc}>http://172.29.58.78:3000</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={[styles.inputWrapper, { width: "100%" }]}>
+              <Text style={styles.inputLabel}>Custom Server URL</Text>
+              <TextInput
+                style={styles.input}
+                value={tempUrl}
+                onChangeText={setTempUrl}
+                placeholder="https://your-server.com"
+                placeholderTextColor={theme.colors.textMuted}
+                autoCapitalize="none"
+              />
+            </View>
+
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => setShowServerModal(false)}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalSaveButton}
+                onPress={() => handleSaveServerUrl()}
+              >
+                <Text style={styles.modalSaveText}>Save & Connect</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Hardware Device Mismatch Alert Modal */}
       <Modal visible={showSecurityModal} transparent={true} animationType="fade">
@@ -621,4 +736,106 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.base,
     fontWeight: "700",
   },
+  serverSettingsCard: {
+    marginTop: 14,
+    backgroundColor: theme.colors.navyCard,
+    borderRadius: theme.borderRadius.md,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.navyBorder,
+  },
+  serverSettingsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  serverSettingsIcon: {
+    fontSize: 18,
+  },
+  serverSettingsDetails: {
+    flex: 1,
+  },
+  serverSettingsTitle: {
+    color: theme.colors.textSecondary,
+    fontSize: 10,
+    fontWeight: "700",
+    textTransform: "uppercase",
+  },
+  serverSettingsUrl: {
+    color: theme.colors.primaryLight,
+    fontSize: theme.typography.xs,
+    fontFamily: "monospace",
+    fontWeight: "600",
+    marginTop: 2,
+  },
+  serverSettingsAction: {
+    color: theme.colors.textMuted,
+    fontSize: theme.typography.xs,
+    fontWeight: "600",
+  },
+  serverInstruction: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.xs,
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  presetList: {
+    gap: 8,
+    width: "100%",
+    marginBottom: 16,
+  },
+  presetItem: {
+    backgroundColor: theme.colors.navySurface,
+    padding: 10,
+    borderRadius: theme.borderRadius.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.navyBorder,
+  },
+  presetItemActive: {
+    borderColor: theme.colors.primaryLight,
+    backgroundColor: "rgba(37, 99, 235, 0.15)",
+  },
+  presetName: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.typography.xs,
+    fontWeight: "700",
+  },
+  presetDesc: {
+    color: theme.colors.textMuted,
+    fontSize: 10,
+    marginTop: 2,
+  },
+  modalButtonRow: {
+    flexDirection: "row",
+    gap: 10,
+    width: "100%",
+    marginTop: 10,
+  },
+  modalCancelButton: {
+    flex: 1,
+    backgroundColor: theme.colors.navySurface,
+    paddingVertical: 10,
+    borderRadius: theme.borderRadius.sm,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: theme.colors.navyBorder,
+  },
+  modalCancelText: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.xs,
+    fontWeight: "700",
+  },
+  modalSaveButton: {
+    flex: 1,
+    backgroundColor: theme.colors.primary,
+    paddingVertical: 10,
+    borderRadius: theme.borderRadius.sm,
+    alignItems: "center",
+  },
+  modalSaveText: {
+    color: theme.colors.white,
+    fontSize: theme.typography.xs,
+    fontWeight: "700",
+  },
 });
+

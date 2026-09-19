@@ -1,20 +1,48 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 
-// Automatically detect local backend endpoint
-const getDefaultUrl = () => {
-  if (process.env.EXPO_PUBLIC_API_URL) {
-    return process.env.EXPO_PUBLIC_API_URL.replace(/\/$/, "");
+const STORAGE_KEY_API_URL = "@gkce_parent_api_url";
+
+// Default HTTPS tunnel endpoint - prevents Android CLEARTEXT policy violations
+const DEFAULT_URL = (
+  process.env.EXPO_PUBLIC_API_URL || "https://gkce-ams-parent.loca.lt"
+).replace(/\/$/, "");
+
+let cachedApiUrl = null;
+
+export const getApiUrl = async () => {
+  if (cachedApiUrl) return cachedApiUrl;
+  try {
+    const saved = await AsyncStorage.getItem(STORAGE_KEY_API_URL);
+    if (saved && saved.trim()) {
+      cachedApiUrl = saved.trim().replace(/\/$/, "");
+      return cachedApiUrl;
+    }
+  } catch {
+    // fallback
   }
-  // Android emulator uses 10.0.2.2, Physical device uses LAN IP or fallback
-  return Platform.OS === "android" ? "http://10.0.2.2:3000" : "http://localhost:3000";
+  cachedApiUrl = DEFAULT_URL;
+  return cachedApiUrl;
 };
 
-const BASE_URL = getDefaultUrl();
+export const setCustomApiUrl = async (newUrl) => {
+  const cleaned = (newUrl || "").trim().replace(/\/$/, "");
+  if (!cleaned) {
+    await AsyncStorage.removeItem(STORAGE_KEY_API_URL);
+    cachedApiUrl = DEFAULT_URL;
+  } else {
+    await AsyncStorage.setItem(STORAGE_KEY_API_URL, cleaned);
+    cachedApiUrl = cleaned;
+  }
+  return cachedApiUrl;
+};
 
 const request = async (endpoint, options = {}) => {
-  const url = `${BASE_URL}${endpoint}`;
+  const baseUrl = await getApiUrl();
+  const url = `${baseUrl}${endpoint}`;
   const headers = {
     "Content-Type": "application/json",
+    "bypass-tunnel-reminder": "true",
     ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
     ...(options.deviceId ? { "x-device-id": options.deviceId } : {}),
     ...(options.headers || {}),
@@ -40,11 +68,23 @@ const request = async (endpoint, options = {}) => {
     return data;
   } catch (err) {
     console.error(`[ParentAPI] Error on ${endpoint}:`, err.message);
+
+    if (err.message && err.message.includes("CLEARTEXT")) {
+      const error = new Error(
+        "Android security blocked unencrypted HTTP communication. Please connect using the secure HTTPS server: https://gkce-ams-parent.loca.lt"
+      );
+      error.isCleartext = true;
+      throw error;
+    }
+
     throw err;
   }
 };
 
 export const parentApi = {
+  getApiUrl,
+  setCustomApiUrl,
+
   /**
    * Request OTP for Parent Phone
    */
