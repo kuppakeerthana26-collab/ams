@@ -29,6 +29,12 @@
     },
     "plugins": [
       "expo-status-bar"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "f82ccc07-de8f-42dd-9fe2-a9ced94648a0"
+      }
+    },
+    "owner": "chinnu554"
   }
 }
