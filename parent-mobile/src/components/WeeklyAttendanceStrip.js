@@ -1,72 +1,106 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { useLanguage } from "../context/LanguageContext.js";
 import { theme } from "../config/theme.js";
 
 export const WeeklyAttendanceStrip = ({ weeklyData = [] }) => {
-  if (!weeklyData.length) return null;
+  const { t, isTelugu } = useLanguage();
+
+  if (!weeklyData || weeklyData.length === 0) return null;
+
+  const dayTranslationMap = {
+    Sun: isTelugu ? "ఆది" : "Sun",
+    Mon: isTelugu ? "సోమ" : "Mon",
+    Tue: isTelugu ? "మంగళ" : "Tue",
+    Wed: isTelugu ? "బుధ" : "Wed",
+    Thu: isTelugu ? "గురు" : "Thu",
+    Fri: isTelugu ? "శుక్ర" : "Fri",
+    Sat: isTelugu ? "శని" : "Sat",
+  };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.card}>
       <View style={styles.headerRow}>
-        <Text style={styles.title}>Weekly Attendance Trail</Text>
-        <Text style={styles.subtitle}>Last 7 Days</Text>
+        <Text style={styles.title}>{t("weeklyTitle")}</Text>
+        <Text style={styles.subtitle}>{t("weeklySubtitle")}</Text>
       </View>
 
       <View style={styles.stripRow}>
         {weeklyData.map((day, idx) => {
           const isPresent = day.status === "P";
           const isAbsent = day.status === "A";
-          const isHoliday = day.status === "Holiday";
-          const isNoClass = day.status === "Not Conducted";
+          const isHoliday = day.status === "Holiday" || day.status === "H";
+          const isNoClass = !isPresent && !isAbsent && !isHoliday;
 
-          let pillBg = theme.colors.navySurface;
-          let pillBorder = theme.colors.navyBorder;
-          let textStatusColor = theme.colors.textMuted;
-          let statusLabel = "-";
+          let pillBg = theme.colors.bgSurface;
+          let pillBorder = theme.colors.borderColor;
+          let badgeBg = theme.colors.bgElevated;
+          let badgeText = "—";
+          let badgeTextColor = theme.colors.textMuted;
 
           if (isPresent) {
             pillBg = theme.colors.successBg;
-            pillBorder = theme.colors.success;
-            textStatusColor = theme.colors.success;
-            statusLabel = "P";
+            pillBorder = theme.colors.successBorder;
+            badgeBg = theme.colors.success;
+            badgeText = "✓";
+            badgeTextColor = theme.colors.white;
           } else if (isAbsent) {
             pillBg = theme.colors.dangerBg;
-            pillBorder = theme.colors.danger;
-            textStatusColor = theme.colors.danger;
-            statusLabel = "A";
+            pillBorder = theme.colors.dangerBorder;
+            badgeBg = theme.colors.danger;
+            badgeText = "✗";
+            badgeTextColor = theme.colors.white;
           } else if (isHoliday) {
             pillBg = theme.colors.warningBg;
-            pillBorder = theme.colors.warning;
-            textStatusColor = theme.colors.warning;
-            statusLabel = "H";
-          } else if (isNoClass) {
-            statusLabel = "—";
+            pillBorder = theme.colors.warningBorder;
+            badgeBg = theme.colors.warning;
+            badgeText = "★";
+            badgeTextColor = theme.colors.bgDark;
           }
 
+          const displayDay = dayTranslationMap[day.day] || day.day;
+
           return (
-            <View key={day.date || idx} style={[styles.dayCard, { borderColor: pillBorder, backgroundColor: pillBg }]}>
-              <Text style={styles.dayName}>{day.day}</Text>
+            <View
+              key={day.date || idx}
+              style={[
+                styles.dayCard,
+                { backgroundColor: pillBg, borderColor: pillBorder },
+              ]}
+            >
+              <Text style={styles.dayName}>{displayDay}</Text>
               <Text style={styles.dayNumber}>{day.dayNumber}</Text>
-              <View style={[styles.statusBadge, { backgroundColor: isPresent ? theme.colors.success : isAbsent ? theme.colors.danger : theme.colors.navySurface }]}>
-                <Text style={styles.statusText}>{statusLabel}</Text>
+              <View style={[styles.statusBadge, { backgroundColor: badgeBg }]}>
+                <Text style={[styles.statusBadgeText, { color: badgeTextColor }]}>
+                  {badgeText}
+                </Text>
               </View>
             </View>
           );
         })}
       </View>
 
+      {/* Clear Legend */}
       <View style={styles.legendRow}>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: theme.colors.success }]} />
-          <Text style={styles.legendLabel}>Present (P)</Text>
+          <Text style={styles.legendText}>
+            {isTelugu ? "✓ హాజరు (P)" : "✓ Present"}
+          </Text>
         </View>
+
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: theme.colors.danger }]} />
-          <Text style={styles.legendLabel}>Absent (A)</Text>
+          <Text style={styles.legendText}>
+            {isTelugu ? "✗ గైర్హాజరు (A)" : "✗ Absent"}
+          </Text>
         </View>
+
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: theme.colors.warning }]} />
-          <Text style={styles.legendLabel}>Holiday (H)</Text>
+          <Text style={styles.legendText}>
+            {isTelugu ? "★ సెలవు (H)" : "★ Holiday"}
+          </Text>
         </View>
       </View>
     </View>
@@ -74,32 +108,28 @@ export const WeeklyAttendanceStrip = ({ weeklyData = [] }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: theme.colors.navyCard,
-    borderRadius: theme.borderRadius.lg,
-    padding: 16,
+  card: {
+    backgroundColor: theme.colors.bgCard,
+    borderRadius: theme.borderRadius.xl,
+    padding: 18,
     marginHorizontal: 16,
-    marginVertical: 10,
+    marginTop: 14,
     borderWidth: 1,
-    borderColor: theme.colors.navyBorder,
+    borderColor: theme.colors.borderColor,
     ...theme.shadows.md,
   },
   headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     marginBottom: 14,
   },
   title: {
-    color: theme.colors.textPrimary,
     fontSize: theme.typography.base,
-    fontWeight: "700",
+    color: theme.colors.textPrimary,
+    fontWeight: "900",
   },
   subtitle: {
-    color: theme.colors.textMuted,
     fontSize: theme.typography.xs,
-    fontWeight: "600",
-    textTransform: "uppercase",
+    color: theme.colors.textMuted,
+    marginTop: 2,
   },
   stripRow: {
     flexDirection: "row",
@@ -110,42 +140,41 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     paddingVertical: 10,
-    paddingHorizontal: 4,
+    paddingHorizontal: 2,
     borderRadius: theme.borderRadius.md,
     borderWidth: 1,
   },
   dayName: {
     color: theme.colors.textSecondary,
-    fontSize: theme.typography.xs,
-    fontWeight: "600",
-    marginBottom: 2,
+    fontSize: 11,
+    fontWeight: "700",
+    marginBottom: 4,
   },
   dayNumber: {
     color: theme.colors.textPrimary,
-    fontSize: theme.typography.md,
-    fontWeight: "800",
+    fontSize: theme.typography.base,
+    fontWeight: "900",
     marginBottom: 6,
   },
   statusBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     alignItems: "center",
     justifyContent: "center",
   },
-  statusText: {
-    color: theme.colors.white,
-    fontSize: theme.typography.xs,
+  statusBadgeText: {
+    fontSize: 12,
     fontWeight: "900",
   },
   legendRow: {
     flexDirection: "row",
-    justifyContent: "center",
-    gap: 16,
+    justifyContent: "space-around",
+    alignItems: "center",
     marginTop: 14,
-    paddingTop: 10,
+    paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.navyBorder,
+    borderTopColor: theme.colors.borderColor,
   },
   legendItem: {
     flexDirection: "row",
@@ -157,9 +186,9 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
   },
-  legendLabel: {
+  legendText: {
     color: theme.colors.textSecondary,
-    fontSize: theme.typography.xs,
-    fontWeight: "500",
+    fontSize: 11,
+    fontWeight: "700",
   },
 });

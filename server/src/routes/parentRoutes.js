@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  loginParent,
   requestOtp,
   verifyOtpAndBindDevice,
   protectParent,
@@ -10,15 +11,18 @@ import {
 
 const router = express.Router();
 
-// Public Parent Auth & Device Binding endpoints (Supports both POST and GET)
+// Direct Parent Login (Username / Roll No + Mobile No + Password)
+router.route("/auth/login").get(loginParent).post(loginParent);
+
+// Legacy OTP compatibility
 router.route("/auth/request-otp").get(requestOtp).post(requestOtp);
 router.route("/auth/verify-otp").get(verifyOtpAndBindDevice).post(verifyOtpAndBindDevice);
 
-// Protected Parent Endpoints (Requires valid Parent JWT + Device Match)
+// Protected Parent Endpoints (Requires valid Parent JWT)
 router.get("/wards", protectParent, getWards);
 router.get("/attendance/:studentId", protectParent, getWardAttendance);
 
-// Administrative device reset endpoint (when parent gets a replacement phone)
+// Administrative device reset endpoint
 router.post("/admin/reset-device/:studentId", resetDeviceBinding);
 
 export default router;

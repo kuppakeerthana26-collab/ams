@@ -1,0 +1,48 @@
+.section-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  background-color: #eff6ff;
+  color: #2563eb;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 12.5px;
+}
+
+.faculty-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.faculty-name {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.faculty-email {
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+.rate-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rate-value {
+  font-size: 13.5px;
+  color: #0f172a;
+}
+
+.rate-track {
+  width: 50px;
+  height: 6px;
+  background-color: #f1f5f9;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.rate-fill {
+  height: 100%;
+  border-radius: 3px;
+}

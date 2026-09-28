@@ -1,0 +1,53 @@
+.trilingual-dialog {
+  max-width: 620px;
+}
+
+.notice-intro-text {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+.language-notice-box {
+  background-color: #f8fafc;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.lang-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.lang-title {
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.english-title {
+  color: #2563eb;
+}
+
+.telugu-title {
+  color: #7c3aed;
+}
+
+.tamil-title {
+  color: #0284c7;
+}
+
+.btn-xs {
+  padding: 2px 8px;
+  font-size: 11px;
+  border-radius: 4px;
+}
+
+.lang-message-text {
+  font-size: 12.5px;
+  color: #0f172a;
+  line-height: 1.5;
+  margin: 0;
+}

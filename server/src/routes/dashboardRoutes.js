@@ -10,6 +10,7 @@ import {
   getFacultyCompliance,
   getAttendanceTrends,
   exportExcel,
+  exportDefaultersDocument,
 } from "../controllers/dashboardController.js";
 import { protect, authorize } from "../middleware/authMiddleware.js";
 
@@ -36,7 +37,8 @@ router.get("/defaulters", getDefaulters);
 router.get("/faculty-status", getFacultyCompliance);
 router.get("/trends", getAttendanceTrends);
 
-// Excel export
+// Document & Excel exports
 router.get("/export/excel", exportExcel);
+router.get("/export/docx", exportDefaultersDocument);
 
 export default router;

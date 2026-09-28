@@ -1,0 +1,187 @@
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-dialog {
+  background-color: #ffffff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close-btn:hover {
+  color: #0f172a;
+  background-color: #f1f5f9;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.modal-student-identity {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f8fafc;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid #f1f5f9;
+}
+
+.modal-student-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.modal-student-sub {
+  font-size: 12.5px;
+  color: #64748b;
+  margin: 3px 0 0 0;
+}
+
+.modal-student-phone {
+  font-size: 12px;
+  color: #2563eb;
+  font-weight: 600;
+  margin: 4px 0 0 0;
+}
+
+.modal-rate-badge-box {
+  text-align: right;
+}
+
+.modal-rate-pill {
+  font-size: 16px;
+  padding: 6px 14px;
+  font-weight: 800;
+}
+
+.modal-rate-sub {
+  display: block;
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.modal-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.modal-metric-card {
+  padding: 12px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.modal-metric-card .label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.5px;
+}
+
+.modal-metric-card .value {
+  font-size: 20px;
+  font-weight: 800;
+  margin-top: 4px;
+}
+
+.modal-metric-card .value.total {
+  color: #0f172a;
+}
+
+.modal-metric-card .value.present {
+  color: #059669;
+}
+
+.modal-metric-card .value.absent {
+  color: #dc2626;
+}
+
+.modal-history-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-history-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+}
+
+.modal-history-empty {
+  font-size: 12.5px;
+  color: #94a3b8;
+  font-style: italic;
+  margin: 0;
+}
+
+.modal-history-table-wrap {
+  max-height: 180px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+}

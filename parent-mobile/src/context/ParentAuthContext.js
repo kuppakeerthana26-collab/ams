@@ -55,13 +55,17 @@ export const ParentAuthProvider = ({ children }) => {
     initialize();
   }, []);
 
-  const loginWithOtp = async ({ phone, otp }) => {
+  /**
+   * Direct Login with Username/Roll No, Phone, and Password (No OTP)
+   */
+  const login = async ({ username = "", phone = "", password = "" }) => {
     const hwId = await getDeviceId();
     const model = await getDeviceModel();
 
-    const response = await parentApi.verifyOtpAndBind({
-      phone,
-      otp,
+    const response = await parentApi.login({
+      username: username.trim(),
+      phone: phone.trim(),
+      password: password.trim(),
       deviceId: hwId,
       deviceModel: model,
     });
@@ -90,6 +94,10 @@ export const ParentAuthProvider = ({ children }) => {
     throw new Error(response.message || "Login failed");
   };
 
+  const loginWithOtp = async ({ phone, otp }) => {
+    return login({ phone, password: otp });
+  };
+
   const selectWard = async (ward) => {
     setSelectedWard(ward);
     if (ward?.id) {
@@ -105,7 +113,6 @@ export const ParentAuthProvider = ({ children }) => {
       if (response.success && response.wards) {
         setWards(response.wards);
         await AsyncStorage.setItem(STORAGE_KEYS.WARDS, JSON.stringify(response.wards));
-        // Keep selected ward valid
         if (selectedWard) {
           const updated = response.wards.find((w) => w.id === selectedWard.id);
           if (updated) setSelectedWard(updated);
@@ -141,8 +148,9 @@ export const ParentAuthProvider = ({ children }) => {
         wards,
         selectedWard,
         deviceId,
-        selectWard,
+        login,
         loginWithOtp,
+        selectWard,
         refreshWards,
         logout,
       }}

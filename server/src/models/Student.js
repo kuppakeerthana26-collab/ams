@@ -6,6 +6,7 @@ const studentSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     className: { type: String, required: true, trim: true, index: true },
     parentPhone: { type: String, required: true, trim: true, index: true },
+    parentPassword: { type: String, default: "Parent@123", trim: true },
     parentDeviceId: { type: String, default: null, trim: true },
     parentDeviceModel: { type: String, default: null, trim: true },
     parentDeviceBoundAt: { type: Date, default: null },

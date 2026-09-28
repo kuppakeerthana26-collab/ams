@@ -172,21 +172,33 @@ export const AuthScreen = () => {
             <View style={styles.demoRow}>
               <TouchableOpacity
                 style={styles.demoChip}
-                onPress={() => handleQuickFill("admin@college.edu", "AdminPass123!")}
+                onPress={() => handleQuickFill("principal@college.edu", "PrincipalPass123!")}
               >
-                <Text style={styles.demoChipText}>Admin</Text>
+                <Text style={styles.demoChipText}>🎓 Principal</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.demoChip}
-                onPress={() => handleQuickFill("cse.teacher1@college.edu", "TeacherPass123!")}
+                onPress={() => handleQuickFill("dean@college.edu", "DeanPass123!")}
               >
-                <Text style={styles.demoChipText}>CSE Teacher</Text>
+                <Text style={styles.demoChipText}>🏛️ Dean / VP</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.demoChip}
                 onPress={() => handleQuickFill("hod.cse@college.edu", "HodPass123!")}
               >
-                <Text style={styles.demoChipText}>HOD</Text>
+                <Text style={styles.demoChipText}>💻 HOD CSE</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.demoChip}
+                onPress={() => handleQuickFill("cse.teacher1@college.edu", "TeacherPass123!")}
+              >
+                <Text style={styles.demoChipText}>👩‍🏫 Teacher</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.demoChip}
+                onPress={() => handleQuickFill("admin@college.edu", "AdminPass123!")}
+              >
+                <Text style={styles.demoChipText}>⚙️ Admin</Text>
               </TouchableOpacity>
             </View>
           </View>

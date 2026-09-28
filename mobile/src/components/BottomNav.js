@@ -6,13 +6,13 @@ import { useAuth } from "../context/AuthContext.js";
 
 export const BottomNav = ({ activeTab, onTabChange }) => {
   const { role } = useAuth();
-  const isAdminOrHod = role === "admin" || role === "hod";
+  const isLeadership = role === "admin" || role === "hod" || role === "dean" || role === "principal";
 
   const tabs = [
     { id: "attendance", label: "Attendance", icon: "clipboard", iconOutline: "clipboard-outline" },
     { id: "students", label: "Students", icon: "people", iconOutline: "people-outline" },
     { id: "reports", label: "Registers", icon: "document-text", iconOutline: "document-text-outline" },
-    ...(isAdminOrHod
+    ...(isLeadership
       ? [
           { id: "dashboard", label: "Dashboard", icon: "stats-chart", iconOutline: "stats-chart-outline" },
         ]

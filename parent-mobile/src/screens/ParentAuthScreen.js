@@ -13,20 +13,22 @@ import {
   Image,
 } from "react-native";
 import { theme } from "../config/theme.js";
+import { useLanguage } from "../context/LanguageContext.js";
 import { useParentAuth } from "../context/ParentAuthContext.js";
 import { parentApi } from "../services/parentApi.js";
 import { getDeviceId, getSimulationMode, toggleSimulationMode } from "../services/deviceService.js";
+import { LanguageToggle } from "../components/LanguageToggle.js";
 
 export const ParentAuthScreen = () => {
-  const { loginWithOtp } = useParentAuth();
+  const { t, isTelugu } = useLanguage();
+  const { login } = useParentAuth();
 
-  const [step, setStep] = useState(1); // 1: Phone, 2: OTP
-  const [phone, setPhone] = useState("+919876543210");
-  const [otp, setOtp] = useState("123456");
+  const [username, setUsername] = useState("25F8A0521");
+  const [phone, setPhone] = useState("+918019797340");
+  const [password, setPassword] = useState("Parent@123");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [wardsPreview, setWardsPreview] = useState([]);
-  const [boundModel, setBoundModel] = useState(null);
   const [deviceId, setDeviceId] = useState("");
   const [isSimMode, setIsSimMode] = useState(false);
 
@@ -73,9 +75,14 @@ export const ParentAuthScreen = () => {
     await loadDeviceStatus();
   };
 
-  const handleRequestOtp = async () => {
+  const handleLogin = async () => {
     if (!phone || phone.trim().length < 10) {
-      setErrorMessage("Please enter a valid 10-digit mobile number");
+      setErrorMessage(t("invalidPhone"));
+      return;
+    }
+
+    if (!password || !password.trim()) {
+      setErrorMessage(t("invalidPassword"));
       return;
     }
 
@@ -83,292 +90,277 @@ export const ParentAuthScreen = () => {
     setErrorMessage("");
 
     try {
-      const response = await parentApi.requestOtp(phone.trim());
-      if (response.success) {
-        setWardsPreview(response.wardsPreview || []);
-        setBoundModel(response.boundModel);
-        if (response.otpDemo) {
-          setOtp(response.otpDemo);
-        }
-        setStep(2);
-      }
-    } catch (err) {
-      setErrorMessage(err.message || "Failed to request OTP. Please verify your phone number with the college.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!otp || otp.trim().length !== 6) {
-      setErrorMessage("Please enter the 6-digit OTP sent to your phone");
-      return;
-    }
-
-    setLoading(true);
-    setErrorMessage("");
-
-    try {
-      await loginWithOtp({ phone: phone.trim(), otp: otp.trim() });
+      await login({
+        username: username.trim(),
+        phone: phone.trim(),
+        password: password.trim(),
+      });
     } catch (err) {
       if (err.errorCode === "DEVICE_MISMATCH") {
         setSecurityModalText(err.message);
         setShowSecurityModal(true);
       } else {
-        setErrorMessage(err.message || "Invalid OTP code. Please try again.");
+        setErrorMessage(
+          err.message ||
+          (isTelugu
+            ? "లాగిన్ విఫలమైంది. దయచేసి వివరాలు సరిచూసుకోండి."
+            : "Login failed. Please check your credentials.")
+        );
       }
     } finally {
       setLoading(false);
     }
   };
 
+  const fillJailabdin = () => {
+    setUsername("25F8A0521");
+    setPhone("+918019797340");
+    setPassword("Parent@123");
+    setErrorMessage("");
+  };
+
+  const fillKeerthana = () => {
+    setUsername("24F81A0532");
+    setPhone("+917013996678");
+    setPassword("Parent@123");
+    setErrorMessage("");
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.keyboardContainer}
+      style={styles.container}
     >
-      <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
-        {/* Header Branding */}
-        <View style={styles.brandContainer}>
-          <Image
-            source={require("../../assets/GKCE-LOGO.png")}
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
-          <Text style={styles.appTitle}>GKCE PARENT AMS</Text>
-          <Text style={styles.appSubtitle}>Student Attendance & Academic Monitoring Portal</Text>
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Top Bar with Language Selector */}
+        <View style={styles.topBar}>
+          <View style={styles.collegeBadge}>
+            <Text style={styles.collegeBadgeText}>GKCE • SULLURPETA</Text>
+          </View>
+          <LanguageToggle />
         </View>
 
-        {/* Auth Card */}
+        {/* Brand Header */}
+        <View style={styles.brandContainer}>
+          <View style={styles.logoWrapper}>
+            <Image
+              source={require("../../assets/GKCE-LOGO.png")}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+          </View>
+          <Text style={styles.appTitle}>{t("appName")}</Text>
+          <Text style={styles.appSubtitle}>{t("appSubtitle")}</Text>
+        </View>
+
+        {/* Main Login Card */}
         <View style={styles.card}>
-          <View style={styles.stepIndicator}>
-            <View style={[styles.stepDot, step >= 1 ? styles.stepDotActive : null]} />
-            <View style={styles.stepLine} />
-            <View style={[styles.stepDot, step === 2 ? styles.stepDotActive : null]} />
+          <Text style={styles.cardHeading}>{t("loginTitle")}</Text>
+          <Text style={styles.cardInstruction}>{t("loginSubtitle")}</Text>
+
+          {/* 1. Username / Student Roll No */}
+          <View style={styles.inputWrapper}>
+            <Text style={styles.inputLabel}>{t("usernameLabel")}</Text>
+            <TextInput
+              style={styles.input}
+              placeholder={t("usernamePlaceholder")}
+              placeholderTextColor={theme.colors.textMuted}
+              value={username}
+              onChangeText={(val) => {
+                setUsername(val);
+                setErrorMessage("");
+              }}
+              autoCapitalize="characters"
+            />
           </View>
 
-          {step === 1 ? (
-            /* STEP 1: Phone Number */
-            <View>
-              <Text style={styles.cardHeading}>Parent Login</Text>
-              <Text style={styles.cardInstruction}>
-                Enter the mobile number registered with the college administration to receive an instant verification code.
-              </Text>
-
-              <View style={styles.inputWrapper}>
-                <Text style={styles.inputLabel}>Registered Mobile Number</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="+919876543210"
-                  placeholderTextColor={theme.colors.textMuted}
-                  value={phone}
-                  onChangeText={(val) => {
-                    setPhone(val);
-                    setErrorMessage("");
-                  }}
-                  keyboardType="phone-pad"
-                  autoCapitalize="none"
-                />
+          {/* 2. Registered Mobile Number */}
+          <View style={styles.inputWrapper}>
+            <Text style={styles.inputLabel}>{t("phoneLabel")}</Text>
+            <View style={styles.phoneInputRow}>
+              <View style={styles.countryCodeBox}>
+                <Text style={styles.countryCodeText}>🇮🇳 +91</Text>
               </View>
-
-              {errorMessage ? (
-                <View style={styles.errorContainer}>
-                  <Text style={styles.errorText}>⚠️ {errorMessage}</Text>
-                </View>
-              ) : null}
-
-              <TouchableOpacity
-                style={[styles.primaryButton, loading ? styles.buttonDisabled : null]}
-                onPress={handleRequestOtp}
-                disabled={loading}
-                activeOpacity={0.8}
-              >
-                {loading ? (
-                  <ActivityIndicator color={theme.colors.white} />
-                ) : (
-                  <Text style={styles.primaryButtonText}>Get Verification Code →</Text>
-                )}
-              </TouchableOpacity>
+              <TextInput
+                style={styles.phoneInput}
+                placeholder="9876500001"
+                placeholderTextColor={theme.colors.textMuted}
+                value={phone.replace(/^\+91/, "")}
+                onChangeText={(val) => {
+                  const clean = val.replace(/[^0-9]/g, "");
+                  setPhone(clean ? `+91${clean}` : "");
+                  setErrorMessage("");
+                }}
+                keyboardType="phone-pad"
+                maxLength={10}
+              />
             </View>
-          ) : (
-            /* STEP 2: OTP Verification */
-            <View>
-              <TouchableOpacity style={styles.backButton} onPress={() => setStep(1)}>
-                <Text style={styles.backButtonText}>← Change Number ({phone})</Text>
-              </TouchableOpacity>
+          </View>
 
-              <Text style={styles.cardHeading}>Enter Verification Code</Text>
-              <Text style={styles.cardInstruction}>
-                We sent a 6-digit verification code to <Text style={styles.boldText}>{phone}</Text>.
-              </Text>
-
-              {wardsPreview.length > 0 ? (
-                <View style={styles.wardPreviewBox}>
-                  <Text style={styles.wardPreviewTitle}>REGISTERED STUDENT(S):</Text>
-                  {wardsPreview.map((w, idx) => (
-                    <Text key={idx} style={styles.wardPreviewItem}>
-                      • <Text style={styles.boldText}>{w.name}</Text> ({w.className} - Roll #{w.rollNo})
-                    </Text>
-                  ))}
-                </View>
-              ) : null}
-
-              {boundModel ? (
-                <View style={styles.deviceNoticeBox}>
-                  <Text style={styles.deviceNoticeText}>
-                    🔒 Account locked to: <Text style={styles.boldText}>{boundModel}</Text>
-                  </Text>
-                </View>
-              ) : null}
-
-              <View style={styles.inputWrapper}>
-                <Text style={styles.inputLabel}>6-Digit OTP</Text>
-                <TextInput
-                  style={[styles.input, styles.otpInput]}
-                  placeholder="123456"
-                  placeholderTextColor={theme.colors.textMuted}
-                  value={otp}
-                  onChangeText={(val) => {
-                    setOtp(val);
-                    setErrorMessage("");
-                  }}
-                  keyboardType="numeric"
-                  maxLength={6}
-                />
-              </View>
-
-              {errorMessage ? (
-                <View style={styles.errorContainer}>
-                  <Text style={styles.errorText}>⚠️ {errorMessage}</Text>
-                </View>
-              ) : null}
-
+          {/* 3. Password */}
+          <View style={styles.inputWrapper}>
+            <View style={styles.passwordLabelRow}>
+              <Text style={styles.inputLabel}>{t("passwordLabel")}</Text>
               <TouchableOpacity
-                style={[styles.primaryButton, loading ? styles.buttonDisabled : null]}
-                onPress={handleVerifyOtp}
-                disabled={loading}
-                activeOpacity={0.8}
-              >
-                {loading ? (
-                  <ActivityIndicator color={theme.colors.white} />
-                ) : (
-                  <Text style={styles.primaryButtonText}>Verify & Access Portal</Text>
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.demoFillButton}
-                onPress={() => setOtp("123456")}
+                onPress={() => setShowPassword(!showPassword)}
                 activeOpacity={0.7}
               >
-                <Text style={styles.demoFillText}>Quick Fill Demo OTP (123456)</Text>
+                <Text style={styles.showHideText}>
+                  {showPassword ? `🙈 ${t("hidePassword")}` : `👁️ ${t("showPassword")}`}
+                </Text>
               </TouchableOpacity>
             </View>
-          )}
+            <TextInput
+              style={styles.input}
+              placeholder={t("passwordPlaceholder")}
+              placeholderTextColor={theme.colors.textMuted}
+              value={password}
+              onChangeText={(val) => {
+                setPassword(val);
+                setErrorMessage("");
+              }}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+            />
+          </View>
+
+          {/* Default Password Hint */}
+          <View style={styles.hintBox}>
+            <Text style={styles.hintText}>
+              💡 <Text style={styles.boldText}>{t("defaultPasswordHint")}</Text>
+            </Text>
+          </View>
+
+          {/* Error Message Container */}
+          {errorMessage ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorIcon}>⚠️</Text>
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            </View>
+          ) : null}
+
+          {/* Login Action Button */}
+          <TouchableOpacity
+            style={[styles.primaryButton, loading && styles.buttonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
+            activeOpacity={0.85}
+          >
+            {loading ? (
+              <View style={styles.loadingRow}>
+                <ActivityIndicator color={theme.colors.white} />
+                <Text style={styles.primaryButtonText}>{t("loggingIn")}</Text>
+              </View>
+            ) : (
+              <Text style={styles.primaryButtonText}>🚀 {t("loginBtn")}</Text>
+            )}
+          </TouchableOpacity>
+
+          {/* Quick Demo Fill Helpers */}
+          <View style={styles.demoButtonsRow}>
+            <TouchableOpacity
+              style={styles.demoFillButton}
+              onPress={fillJailabdin}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.demoFillText}>⚡ SK Jailabdin (8019797340)</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.demoFillButton}
+              onPress={fillKeerthana}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.demoFillText}>⚡ K. Keerthana (7013996678)</Text>
+            </TouchableOpacity>
+          </View>
 
           {/* Security Notice Footer */}
           <View style={styles.securityFooter}>
-            <Text style={styles.securityFooterIcon}>🛡️</Text>
-            <Text style={styles.securityFooterText}>
-              Hardware Device Protected: This portal binds to your smartphone hardware to prevent students from logging in with your credentials.
-            </Text>
+            <Text style={styles.securityIcon}>🛡️</Text>
+            <Text style={styles.securityText}>{t("securityNoticeDesc")}</Text>
           </View>
         </View>
 
-        {/* Server Endpoint Configuration Banner */}
+        {/* Discreet Server Connection Bar */}
         <TouchableOpacity
-          style={styles.serverSettingsCard}
+          style={styles.serverSettingsRow}
           onPress={() => setShowServerModal(true)}
-          activeOpacity={0.8}
+          activeOpacity={0.7}
         >
-          <View style={styles.serverSettingsRow}>
-            <Text style={styles.serverSettingsIcon}>🌐</Text>
-            <View style={styles.serverSettingsDetails}>
-              <Text style={styles.serverSettingsTitle}>Backend Server Connection</Text>
-              <Text style={styles.serverSettingsUrl} numberOfLines={1}>
-                {apiUrl}
-              </Text>
-            </View>
-            <Text style={styles.serverSettingsAction}>Change ⚙️</Text>
-          </View>
-        </TouchableOpacity>
-
-        {/* Testing / Demonstration Tool */}
-        <View style={styles.simTestingBox}>
-          <Text style={styles.simTestingTitle}>Security Demonstration Tool</Text>
-          <Text style={styles.simTestingDesc}>
-            Current Device ID: <Text style={styles.monoText}>{deviceId.slice(0, 18)}...</Text>
+          <Text style={styles.serverIcon}>🌐</Text>
+          <Text style={styles.serverText} numberOfLines={1}>
+            Server: {apiUrl}
           </Text>
-          <TouchableOpacity
-            style={[styles.simToggleButton, isSimMode ? styles.simToggleActive : null]}
-            onPress={handleToggleSim}
-          >
-            <Text style={styles.simToggleText}>
-              {isSimMode
-                ? "⚠️ Spoofing Student Device (Active) - Tap to Normal"
-                : "🧪 Simulate Student Device (Test Anti-Bypass)"}
-            </Text>
-          </TouchableOpacity>
-        </View>
+          <Text style={styles.serverAction}>⚙️</Text>
+        </TouchableOpacity>
       </ScrollView>
 
       {/* Server Endpoint Configuration Modal */}
       <Modal visible={showServerModal} transparent={true} animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>SERVER CONNECTION</Text>
-            <Text style={styles.modalSubtitle}>Configure College Backend Endpoint</Text>
-
-            <Text style={styles.serverInstruction}>
-              Select a connection preset or enter your computer's server URL:
-            </Text>
+            <Text style={styles.modalTitle}>SERVER CONNECTION SETTINGS</Text>
+            <Text style={styles.modalSubtitle}>Configure API host endpoint</Text>
 
             <View style={styles.presetList}>
               <TouchableOpacity
                 style={[
                   styles.presetItem,
-                  apiUrl.includes("192.168.137.110") ? styles.presetItemActive : null,
+                  apiUrl.includes("192.168.137.110") && styles.presetItemActive,
                 ]}
                 onPress={() => handleSaveServerUrl("http://192.168.137.110:3000")}
               >
-                <Text style={styles.presetName}>📶 Local Wi-Fi (Current PC IP - Recommended)</Text>
-                <Text style={styles.presetDesc}>http://192.168.137.110:3000</Text>
+                <Text style={styles.presetName}>📶 Local Wi-Fi (192.168.137.110:3000)</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[
                   styles.presetItem,
-                  apiUrl.includes("10.0.2.2") ? styles.presetItemActive : null,
+                  apiUrl.includes("10.0.2.2") && styles.presetItemActive,
                 ]}
                 onPress={() => handleSaveServerUrl("http://10.0.2.2:3000")}
               >
-                <Text style={styles.presetName}>💻 Android Emulator Host</Text>
-                <Text style={styles.presetDesc}>http://10.0.2.2:3000 (For local PC emulator)</Text>
+                <Text style={styles.presetName}>💻 Android Emulator (10.0.2.2:3000)</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[
                   styles.presetItem,
-                  apiUrl.includes("loca.lt") ? styles.presetItemActive : null,
+                  apiUrl.includes("loca.lt") && styles.presetItemActive,
                 ]}
                 onPress={() => handleSaveServerUrl("https://gkce-ams-parent.loca.lt")}
               >
-                <Text style={styles.presetName}>🔒 Cloud HTTPS Tunnel</Text>
-                <Text style={styles.presetDesc}>https://gkce-ams-parent.loca.lt</Text>
+                <Text style={styles.presetName}>🔒 HTTPS Tunnel (gkce-ams-parent.loca.lt)</Text>
               </TouchableOpacity>
             </View>
 
-            <View style={[styles.inputWrapper, { width: "100%" }]}>
+            <View style={styles.inputWrapper}>
               <Text style={styles.inputLabel}>Custom Server URL</Text>
               <TextInput
                 style={styles.input}
                 value={tempUrl}
                 onChangeText={setTempUrl}
-                placeholder="https://your-server.com"
+                placeholder="http://192.168.x.x:3000"
                 placeholderTextColor={theme.colors.textMuted}
                 autoCapitalize="none"
               />
             </View>
+
+            {/* Anti-Bypass Testing Switch */}
+            <TouchableOpacity
+              style={[styles.simBtn, isSimMode && styles.simBtnActive]}
+              onPress={handleToggleSim}
+            >
+              <Text style={styles.simBtnText}>
+                {isSimMode
+                  ? "⚠️ Spoofing Student Device (Active)"
+                  : "🧪 Test Anti-Bypass (Simulate Student Device)"}
+              </Text>
+            </TouchableOpacity>
 
             <View style={styles.modalButtonRow}>
               <TouchableOpacity
@@ -392,25 +384,32 @@ export const ParentAuthScreen = () => {
       <Modal visible={showSecurityModal} transparent={true} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
-            <View style={styles.modalIconBox}>
-              <Text style={styles.modalIcon}>🚫</Text>
+            <View style={styles.securityIconBox}>
+              <Text style={styles.bigAlertIcon}>🚫</Text>
             </View>
-            <Text style={styles.modalTitle}>UNAUTHORIZED DEVICE</Text>
-            <Text style={styles.modalSubtitle}>Hardware Device Binding Violation</Text>
-
-            <View style={styles.modalMessageCard}>
-              <Text style={styles.modalMessageText}>{securityModalText}</Text>
-            </View>
-
-            <Text style={styles.modalExplanation}>
-              GKCE Security Policy: To ensure complete academic transparency, parent accounts are permanently bound to the parent's verified phone. Students cannot access attendance records on unauthorized devices.
+            <Text style={styles.securityAlertTitle}>
+              {t("unauthorizedDeviceTitle")}
+            </Text>
+            <Text style={styles.securityAlertSub}>
+              {t("unauthorizedDeviceSubtitle")}
             </Text>
 
+            <View style={styles.alertMessageBox}>
+              <Text style={styles.alertMessageText}>
+                {securityModalText ||
+                  (isTelugu
+                    ? "ఈ ఖాతా ఇప్పటికే తల్లిదండ్రుల నమోదైన ఫోన్‌కు లాక్ చేయబడింది."
+                    : "This account is bound to your registered phone.")}
+              </Text>
+            </View>
+
             <TouchableOpacity
-              style={styles.modalDismissButton}
+              style={styles.alertDismissBtn}
               onPress={() => setShowSecurityModal(false)}
             >
-              <Text style={styles.modalDismissText}>Dismiss Alert</Text>
+              <Text style={styles.alertDismissBtnText}>
+                {t("unauthorizedDeviceDismiss")}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -420,29 +419,62 @@ export const ParentAuthScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  keyboardContainer: {
+  container: {
     flex: 1,
-    backgroundColor: theme.colors.navy,
+    backgroundColor: theme.colors.bgDark,
   },
   scrollContainer: {
     padding: 20,
     justifyContent: "center",
     minHeight: "100%",
   },
+  topBar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+    marginTop: Platform.OS === "ios" ? 20 : 10,
+  },
+  collegeBadge: {
+    backgroundColor: theme.colors.bgSurface,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: theme.borderRadius.full,
+    borderWidth: 1,
+    borderColor: theme.colors.borderColor,
+  },
+  collegeBadgeText: {
+    color: theme.colors.primaryLight,
+    fontSize: 10,
+    fontWeight: "900",
+    letterSpacing: 0.8,
+  },
   brandContainer: {
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 20,
+  },
+  logoWrapper: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    backgroundColor: theme.colors.bgSurface,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: theme.colors.primaryLight,
+    ...theme.shadows.md,
   },
   logoImage: {
-    width: 72,
-    height: 72,
-    marginBottom: 12,
+    width: 54,
+    height: 54,
   },
   appTitle: {
     fontSize: theme.typography.xl,
     fontWeight: "900",
     color: theme.colors.textPrimary,
-    letterSpacing: 1.5,
+    letterSpacing: 0.5,
+    textAlign: "center",
   },
   appSubtitle: {
     fontSize: theme.typography.xs,
@@ -451,40 +483,18 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   card: {
-    backgroundColor: theme.colors.navyCard,
+    backgroundColor: theme.colors.bgCard,
     borderRadius: theme.borderRadius.xl,
     padding: 22,
     borderWidth: 1,
-    borderColor: theme.colors.navyBorder,
+    borderColor: theme.colors.borderColor,
     ...theme.shadows.lg,
-  },
-  stepIndicator: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
-  },
-  stepDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: theme.colors.navyBorder,
-  },
-  stepDotActive: {
-    backgroundColor: theme.colors.primaryLight,
-    width: 20,
-  },
-  stepLine: {
-    width: 40,
-    height: 2,
-    backgroundColor: theme.colors.navyBorder,
-    marginHorizontal: 8,
   },
   cardHeading: {
     fontSize: theme.typography.lg,
-    fontWeight: "800",
+    fontWeight: "900",
     color: theme.colors.textPrimary,
-    marginBottom: 6,
+    marginBottom: 4,
   },
   cardInstruction: {
     fontSize: theme.typography.sm,
@@ -493,349 +503,316 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   boldText: {
-    fontWeight: "700",
+    fontWeight: "800",
     color: theme.colors.textPrimary,
   },
   inputWrapper: {
-    marginBottom: 16,
+    marginBottom: 14,
   },
   inputLabel: {
     fontSize: theme.typography.xs,
-    color: theme.colors.textSecondary,
-    fontWeight: "600",
+    color: theme.colors.textMuted,
+    fontWeight: "700",
     marginBottom: 6,
     textTransform: "uppercase",
   },
-  input: {
-    backgroundColor: theme.colors.navySurface,
+  passwordLabelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  showHideText: {
+    color: theme.colors.primaryLight,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  phoneInputRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  countryCodeBox: {
+    backgroundColor: theme.colors.bgSurface,
     borderRadius: theme.borderRadius.md,
     borderWidth: 1,
-    borderColor: theme.colors.navyBorder,
+    borderColor: theme.colors.borderColor,
+    paddingHorizontal: 12,
+    justifyContent: "center",
+  },
+  countryCodeText: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.typography.base,
+    fontWeight: "800",
+  },
+  phoneInput: {
+    flex: 1,
+    backgroundColor: theme.colors.bgSurface,
+    borderRadius: theme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.borderColor,
+    color: theme.colors.textPrimary,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: theme.typography.base,
+    fontWeight: "700",
+  },
+  input: {
+    backgroundColor: theme.colors.bgSurface,
+    borderRadius: theme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.borderColor,
     color: theme.colors.textPrimary,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: theme.typography.base,
   },
-  otpInput: {
-    textAlign: "center",
-    fontSize: theme.typography.xxl,
-    fontWeight: "800",
-    letterSpacing: 8,
+  hintBox: {
+    backgroundColor: "rgba(37, 99, 235, 0.08)",
+    padding: 10,
+    borderRadius: theme.borderRadius.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.borderColor,
+    marginBottom: 14,
+  },
+  hintText: {
+    color: theme.colors.textSecondary,
+    fontSize: 11,
+    lineHeight: 16,
   },
   primaryButton: {
     backgroundColor: theme.colors.primary,
     borderRadius: theme.borderRadius.md,
-    paddingVertical: 14,
+    paddingVertical: 16,
     alignItems: "center",
+    justifyContent: "center",
     marginTop: 6,
     ...theme.shadows.md,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
+  loadingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
   primaryButtonText: {
     color: theme.colors.white,
     fontSize: theme.typography.base,
-    fontWeight: "700",
+    fontWeight: "900",
   },
-  backButton: {
-    marginBottom: 12,
-  },
-  backButtonText: {
-    color: theme.colors.primaryLight,
-    fontSize: theme.typography.sm,
-    fontWeight: "600",
-  },
-  wardPreviewBox: {
-    backgroundColor: theme.colors.navySurface,
-    padding: 12,
-    borderRadius: theme.borderRadius.md,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: theme.colors.navyBorder,
-  },
-  wardPreviewTitle: {
-    fontSize: 10,
-    color: theme.colors.primaryLight,
-    fontWeight: "800",
-    marginBottom: 4,
-  },
-  wardPreviewItem: {
-    fontSize: theme.typography.xs,
-    color: theme.colors.textSecondary,
-    lineHeight: 18,
-  },
-  deviceNoticeBox: {
-    backgroundColor: "rgba(16, 185, 129, 0.1)",
-    padding: 8,
-    borderRadius: theme.borderRadius.sm,
-    marginBottom: 14,
-  },
-  deviceNoticeText: {
-    color: theme.colors.success,
-    fontSize: theme.typography.xs,
-    fontWeight: "600",
-    textAlign: "center",
+  demoButtonsRow: {
+    marginTop: 12,
+    gap: 8,
+    alignItems: "center",
   },
   demoFillButton: {
-    marginTop: 12,
+    paddingVertical: 4,
     alignItems: "center",
   },
   demoFillText: {
-    color: theme.colors.textMuted,
-    fontSize: theme.typography.xs,
+    color: theme.colors.primaryLight,
+    fontSize: 11,
+    fontWeight: "700",
     textDecorationLine: "underline",
   },
   errorContainer: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: theme.colors.dangerBg,
-    borderRadius: theme.borderRadius.sm,
-    padding: 10,
+    borderRadius: theme.borderRadius.md,
+    padding: 12,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: theme.colors.danger,
+    borderColor: theme.colors.dangerBorder,
+    gap: 8,
+  },
+  errorIcon: {
+    fontSize: 16,
   },
   errorText: {
-    color: theme.colors.danger,
+    flex: 1,
+    color: theme.colors.dangerText,
     fontSize: theme.typography.xs,
-    fontWeight: "600",
+    fontWeight: "700",
+    lineHeight: 16,
   },
   securityFooter: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    marginTop: 20,
-    paddingTop: 16,
+    marginTop: 18,
+    paddingTop: 14,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.navyBorder,
+    borderTopColor: theme.colors.borderColor,
   },
-  securityFooterIcon: {
+  securityIcon: {
     fontSize: 16,
   },
-  securityFooterText: {
+  securityText: {
     flex: 1,
     fontSize: 11,
     color: theme.colors.textMuted,
     lineHeight: 15,
   },
-  simTestingBox: {
-    marginTop: 20,
-    backgroundColor: "rgba(30, 41, 59, 0.7)",
-    borderRadius: theme.borderRadius.lg,
-    padding: 14,
+  serverSettingsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.colors.bgCard,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: theme.borderRadius.md,
+    marginTop: 16,
     borderWidth: 1,
-    borderColor: theme.colors.navyBorder,
+    borderColor: theme.colors.borderColor,
+    gap: 8,
   },
-  simTestingTitle: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.typography.xs,
-    fontWeight: "700",
-    textTransform: "uppercase",
+  serverIcon: {
+    fontSize: 14,
   },
-  simTestingDesc: {
+  serverText: {
+    flex: 1,
     color: theme.colors.textMuted,
     fontSize: 11,
-    marginVertical: 4,
+    fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
   },
-  monoText: {
-    color: theme.colors.primaryLight,
-    fontFamily: "monospace",
-  },
-  simToggleButton: {
-    backgroundColor: "rgba(37, 99, 235, 0.2)",
-    paddingVertical: 8,
-    borderRadius: theme.borderRadius.sm,
-    alignItems: "center",
-    marginTop: 6,
-    borderWidth: 1,
-    borderColor: theme.colors.primaryLight,
-  },
-  simToggleActive: {
-    backgroundColor: theme.colors.dangerBg,
-    borderColor: theme.colors.danger,
-  },
-  simToggleText: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.typography.xs,
-    fontWeight: "700",
+  serverAction: {
+    fontSize: 14,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    backgroundColor: "rgba(0,0,0,0.85)",
     justifyContent: "center",
-    alignItems: "center",
     padding: 20,
   },
   modalCard: {
-    backgroundColor: theme.colors.navyCard,
+    backgroundColor: theme.colors.bgCard,
     borderRadius: theme.borderRadius.xl,
-    padding: 24,
-    width: "100%",
-    maxWidth: 380,
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: theme.colors.danger,
-    ...theme.shadows.lg,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: theme.colors.borderColor,
   },
-  modalIconBox: {
+  modalTitle: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.typography.sm,
+    fontWeight: "900",
+  },
+  modalSubtitle: {
+    color: theme.colors.textMuted,
+    fontSize: 11,
+    marginBottom: 14,
+  },
+  presetList: {
+    gap: 8,
+    marginBottom: 14,
+  },
+  presetItem: {
+    backgroundColor: theme.colors.bgSurface,
+    padding: 10,
+    borderRadius: theme.borderRadius.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.borderColor,
+  },
+  presetItemActive: {
+    backgroundColor: theme.colors.primaryMuted,
+    borderColor: theme.colors.primaryLight,
+  },
+  presetName: {
+    color: theme.colors.textPrimary,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  simBtn: {
+    backgroundColor: theme.colors.bgSurface,
+    padding: 10,
+    borderRadius: theme.borderRadius.sm,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: theme.colors.borderColor,
+    marginBottom: 16,
+  },
+  simBtnActive: {
+    backgroundColor: theme.colors.dangerBg,
+    borderColor: theme.colors.danger,
+  },
+  simBtnText: {
+    color: theme.colors.textPrimary,
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  modalButtonRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 10,
+  },
+  modalCancelButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+  },
+  modalCancelText: {
+    color: theme.colors.textMuted,
+    fontWeight: "700",
+  },
+  modalSaveButton: {
+    backgroundColor: theme.colors.primary,
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    borderRadius: theme.borderRadius.sm,
+  },
+  modalSaveText: {
+    color: theme.colors.white,
+    fontWeight: "800",
+  },
+  securityIconBox: {
     width: 60,
     height: 60,
     borderRadius: 30,
     backgroundColor: theme.colors.dangerBg,
     alignItems: "center",
     justifyContent: "center",
+    alignSelf: "center",
     marginBottom: 12,
   },
-  modalIcon: {
-    fontSize: 32,
+  bigAlertIcon: {
+    fontSize: 30,
   },
-  modalTitle: {
-    fontSize: theme.typography.lg,
+  securityAlertTitle: {
+    color: theme.colors.dangerText,
+    fontSize: theme.typography.md,
     fontWeight: "900",
-    color: theme.colors.danger,
-    letterSpacing: 1,
+    textAlign: "center",
   },
-  modalSubtitle: {
-    fontSize: theme.typography.xs,
-    fontWeight: "700",
+  securityAlertSub: {
     color: theme.colors.textMuted,
+    fontSize: 11,
+    fontWeight: "700",
+    textAlign: "center",
+    marginBottom: 14,
     textTransform: "uppercase",
-    marginBottom: 14,
   },
-  modalMessageCard: {
+  alertMessageBox: {
     backgroundColor: theme.colors.dangerBg,
-    padding: 12,
+    padding: 14,
     borderRadius: theme.borderRadius.md,
-    marginBottom: 14,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: theme.colors.danger,
+    borderColor: theme.colors.dangerBorder,
   },
-  modalMessageText: {
+  alertMessageText: {
     color: theme.colors.textPrimary,
-    fontSize: theme.typography.sm,
-    lineHeight: 20,
-    textAlign: "center",
-    fontWeight: "600",
-  },
-  modalExplanation: {
-    color: theme.colors.textSecondary,
     fontSize: theme.typography.xs,
-    lineHeight: 17,
+    lineHeight: 18,
     textAlign: "center",
-    marginBottom: 20,
   },
-  modalDismissButton: {
+  alertDismissBtn: {
     backgroundColor: theme.colors.danger,
     paddingVertical: 12,
-    paddingHorizontal: 24,
     borderRadius: theme.borderRadius.md,
-    width: "100%",
     alignItems: "center",
   },
-  modalDismissText: {
+  alertDismissBtnText: {
     color: theme.colors.white,
-    fontSize: theme.typography.base,
-    fontWeight: "700",
-  },
-  serverSettingsCard: {
-    marginTop: 14,
-    backgroundColor: theme.colors.navyCard,
-    borderRadius: theme.borderRadius.md,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: theme.colors.navyBorder,
-  },
-  serverSettingsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  serverSettingsIcon: {
-    fontSize: 18,
-  },
-  serverSettingsDetails: {
-    flex: 1,
-  },
-  serverSettingsTitle: {
-    color: theme.colors.textSecondary,
-    fontSize: 10,
-    fontWeight: "700",
-    textTransform: "uppercase",
-  },
-  serverSettingsUrl: {
-    color: theme.colors.primaryLight,
-    fontSize: theme.typography.xs,
-    fontFamily: "monospace",
-    fontWeight: "600",
-    marginTop: 2,
-  },
-  serverSettingsAction: {
-    color: theme.colors.textMuted,
-    fontSize: theme.typography.xs,
-    fontWeight: "600",
-  },
-  serverInstruction: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.typography.xs,
-    marginBottom: 12,
-    textAlign: "center",
-  },
-  presetList: {
-    gap: 8,
-    width: "100%",
-    marginBottom: 16,
-  },
-  presetItem: {
-    backgroundColor: theme.colors.navySurface,
-    padding: 10,
-    borderRadius: theme.borderRadius.sm,
-    borderWidth: 1,
-    borderColor: theme.colors.navyBorder,
-  },
-  presetItemActive: {
-    borderColor: theme.colors.primaryLight,
-    backgroundColor: "rgba(37, 99, 235, 0.15)",
-  },
-  presetName: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.typography.xs,
-    fontWeight: "700",
-  },
-  presetDesc: {
-    color: theme.colors.textMuted,
-    fontSize: 10,
-    marginTop: 2,
-  },
-  modalButtonRow: {
-    flexDirection: "row",
-    gap: 10,
-    width: "100%",
-    marginTop: 10,
-  },
-  modalCancelButton: {
-    flex: 1,
-    backgroundColor: theme.colors.navySurface,
-    paddingVertical: 10,
-    borderRadius: theme.borderRadius.sm,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: theme.colors.navyBorder,
-  },
-  modalCancelText: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.typography.xs,
-    fontWeight: "700",
-  },
-  modalSaveButton: {
-    flex: 1,
-    backgroundColor: theme.colors.primary,
-    paddingVertical: 10,
-    borderRadius: theme.borderRadius.sm,
-    alignItems: "center",
-  },
-  modalSaveText: {
-    color: theme.colors.white,
-    fontSize: theme.typography.xs,
-    fontWeight: "700",
+    fontSize: theme.typography.sm,
+    fontWeight: "800",
   },
 });
-

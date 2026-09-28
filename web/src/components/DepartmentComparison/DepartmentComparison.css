@@ -1,0 +1,148 @@
+.departments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.dept-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dept-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.dept-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.dept-card-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dept-badge-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background-color: #eff6ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.dept-title-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.dept-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dept-hod-name {
+  font-size: 11.5px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.dept-progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dept-rate-label-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.dept-rate-label-row .label {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.dept-rate-label-row .value {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.progress-track {
+  width: 100%;
+  height: 6px;
+  background-color: #f1f5f9;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progress-bar.high {
+  background-color: #059669;
+}
+
+.progress-bar.medium {
+  background-color: #d97706;
+}
+
+.progress-bar.low {
+  background-color: #dc2626;
+}
+
+.dept-metrics-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background-color: #f8fafc;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #f1f5f9;
+  text-align: center;
+}
+
+.dept-metric-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dept-metric-item span {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.dept-metric-item strong {
+  font-size: 13.5px;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.inspect-btn {
+  width: 100%;
+  font-size: 12px;
+  justify-content: center;
+  padding: 8px;
+}

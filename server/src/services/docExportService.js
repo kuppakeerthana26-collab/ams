@@ -1,0 +1,477 @@
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  Table,
+  TableRow,
+  TableCell,
+  WidthType,
+  AlignmentType,
+  BorderStyle,
+  HeadingLevel,
+  ShadingType,
+} from "docx";
+
+const DEPT_NAMES = {
+  CSE: "Computer Science & Engineering",
+  ECE: "Electronics & Communication Engineering",
+  MECH: "Mechanical Engineering",
+  CIVIL: "Civil Engineering",
+  EEE: "Electrical & Electronics Engineering",
+  ALL: "All Engineering Departments (Institution Aggregate)",
+};
+
+/**
+ * Generates an official, formal .docx document for attendance shortage (<75%)
+ */
+export async function generateDefaultersDocx({
+  department = "ALL",
+  threshold = 75,
+  defaulters = [],
+  totalStudents = 0,
+  generatedBy = "System Administrator",
+}) {
+  const deptFullName = DEPT_NAMES[department] || `${department} Department`;
+  const reportDate = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  const criticalCount = defaulters.filter((d) => d.percentage < 50).length;
+  const highCount = defaulters.filter((d) => d.percentage >= 50 && d.percentage < 65).length;
+  const warningCount = defaulters.filter((d) => d.percentage >= 65 && d.percentage < threshold).length;
+
+  const cellBorder = {
+    top: { style: BorderStyle.SINGLE, size: 1, color: "CBD5E1" },
+    bottom: { style: BorderStyle.SINGLE, size: 1, color: "CBD5E1" },
+    left: { style: BorderStyle.SINGLE, size: 1, color: "CBD5E1" },
+    right: { style: BorderStyle.SINGLE, size: 1, color: "CBD5E1" },
+  };
+
+  const headerCellBorder = {
+    top: { style: BorderStyle.SINGLE, size: 2, color: "1E3A8A" },
+    bottom: { style: BorderStyle.SINGLE, size: 2, color: "1E3A8A" },
+    left: { style: BorderStyle.SINGLE, size: 1, color: "CBD5E1" },
+    right: { style: BorderStyle.SINGLE, size: 1, color: "CBD5E1" },
+  };
+
+  // Header Table (Letterhead)
+  const letterheadParagraphs = [
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      children: [
+        new TextRun({
+          text: "GOKULA KRISHNA COLLEGE OF ENGINEERING",
+          bold: true,
+          size: 32, // 16pt
+          color: "1E3A8A",
+          font: "Arial",
+        }),
+      ],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      children: [
+        new TextRun({
+          text: "Approved by AICTE, New Delhi • Affiliated to JNTUA, Ananthapuramu",
+          size: 18, // 9pt
+          color: "475569",
+          font: "Arial",
+        }),
+      ],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      children: [
+        new TextRun({
+          text: "Behind RTC Depot, NVR Nagar, Sullurpeta, Tirupati Dist., A.P. - 524121",
+          size: 18,
+          color: "475569",
+          font: "Arial",
+        }),
+      ],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 150 },
+      children: [
+        new TextRun({
+          text: `OFFICE OF ACADEMIC MONITORING & VERIFICATION • DEPARTMENT OF ${department}`,
+          bold: true,
+          size: 20,
+          color: "0F172A",
+          font: "Arial",
+        }),
+      ],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 100, after: 200 },
+      children: [
+        new TextRun({
+          text: `OFFICIAL ATTENDANCE SHORTAGE REPORT (< ${threshold}%)`,
+          bold: true,
+          size: 26,
+          color: "DC2626", // Crimson Red
+          underline: {},
+          font: "Arial",
+        }),
+      ],
+    }),
+  ];
+
+  // Metadata Table
+  const metaTable = new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({
+        children: [
+          new TableCell({
+            width: { size: 25, type: WidthType.PERCENTAGE },
+            shading: { fill: "F1F5F9", type: ShadingType.CLEAR },
+            borders: cellBorder,
+            children: [new Paragraph({ children: [new TextRun({ text: "Branch / Scope:", bold: true, size: 20, font: "Arial" })] })],
+          }),
+          new TableCell({
+            width: { size: 75, type: WidthType.PERCENTAGE },
+            borders: cellBorder,
+            children: [new Paragraph({ children: [new TextRun({ text: `${department} (${deptFullName})`, size: 20, font: "Arial" })] })],
+          }),
+        ],
+      }),
+      new TableRow({
+        children: [
+          new TableCell({
+            width: { size: 25, type: WidthType.PERCENTAGE },
+            shading: { fill: "F1F5F9", type: ShadingType.CLEAR },
+            borders: cellBorder,
+            children: [new Paragraph({ children: [new TextRun({ text: "Report Date:", bold: true, size: 20, font: "Arial" })] })],
+          }),
+          new TableCell({
+            width: { size: 75, type: WidthType.PERCENTAGE },
+            borders: cellBorder,
+            children: [new Paragraph({ children: [new TextRun({ text: `${reportDate} (Generated by ${generatedBy})`, size: 20, font: "Arial" })] })],
+          }),
+        ],
+      }),
+      new TableRow({
+        children: [
+          new TableCell({
+            width: { size: 25, type: WidthType.PERCENTAGE },
+            shading: { fill: "F1F5F9", type: ShadingType.CLEAR },
+            borders: cellBorder,
+            children: [new Paragraph({ children: [new TextRun({ text: "Regulatory Criteria:", bold: true, size: 20, font: "Arial" })] })],
+          }),
+          new TableCell({
+            width: { size: 75, type: WidthType.PERCENTAGE },
+            borders: cellBorder,
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: `JNTUA Regulations: Minimum ${threshold}% aggregate attendance required to be eligible for End-Semester University Examinations.`,
+                    size: 19,
+                    color: "334155",
+                    font: "Arial",
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      }),
+    ],
+  });
+
+  // Summary Metrics Table
+  const summaryTable = new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({
+        children: [
+          new TableCell({
+            shading: { fill: "1E3A8A", type: ShadingType.CLEAR },
+            borders: headerCellBorder,
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Total Enrolled", bold: true, color: "FFFFFF", size: 20, font: "Arial" })] })],
+          }),
+          new TableCell({
+            shading: { fill: "DC2626", type: ShadingType.CLEAR },
+            borders: headerCellBorder,
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `Defaulters (<${threshold}%)`, bold: true, color: "FFFFFF", size: 20, font: "Arial" })] })],
+          }),
+          new TableCell({
+            shading: { fill: "991B1B", type: ShadingType.CLEAR },
+            borders: headerCellBorder,
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Critical (<50%)", bold: true, color: "FFFFFF", size: 20, font: "Arial" })] })],
+          }),
+          new TableCell({
+            shading: { fill: "EA580C", type: ShadingType.CLEAR },
+            borders: headerCellBorder,
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "High (50%-65%)", bold: true, color: "FFFFFF", size: 20, font: "Arial" })] })],
+          }),
+          new TableCell({
+            shading: { fill: "D97706", type: ShadingType.CLEAR },
+            borders: headerCellBorder,
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Warning (65%-75%)", bold: true, color: "FFFFFF", size: 20, font: "Arial" })] })],
+          }),
+        ],
+      }),
+      new TableRow({
+        children: [
+          new TableCell({
+            borders: cellBorder,
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: String(totalStudents || defaulters.length), bold: true, size: 24, font: "Arial" })] })],
+          }),
+          new TableCell({
+            borders: cellBorder,
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: String(defaulters.length), bold: true, size: 24, color: "DC2626", font: "Arial" })] })],
+          }),
+          new TableCell({
+            borders: cellBorder,
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: String(criticalCount), bold: true, size: 24, color: "991B1B", font: "Arial" })] })],
+          }),
+          new TableCell({
+            borders: cellBorder,
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: String(highCount), bold: true, size: 24, color: "EA580C", font: "Arial" })] })],
+          }),
+          new TableCell({
+            borders: cellBorder,
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: String(warningCount), bold: true, size: 24, color: "D97706", font: "Arial" })] })],
+          }),
+        ],
+      }),
+    ],
+  });
+
+  // Defaulters Data Table Headers
+  const dataHeaders = [
+    { text: "S.No", width: 6 },
+    { text: "Roll No", width: 14 },
+    { text: "Student Name", width: 22 },
+    { text: "Class", width: 10 },
+    { text: "Classes", width: 10 },
+    { text: "Att %", width: 10 },
+    { text: "Recovery", width: 12 },
+    { text: "Parent Phone", width: 16 },
+  ];
+
+  const headerRow = new TableRow({
+    children: dataHeaders.map(
+      (h) =>
+        new TableCell({
+          width: { size: h.width, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E293B", type: ShadingType.CLEAR },
+          borders: headerCellBorder,
+          children: [
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              children: [new TextRun({ text: h.text, bold: true, color: "FFFFFF", size: 18, font: "Arial" })],
+            }),
+          ],
+        }),
+    ),
+  });
+
+  // Defaulters Data Rows
+  const studentRows = defaulters.map((st, idx) => {
+    const isCrit = st.percentage < 50;
+    const isHigh = st.percentage >= 50 && st.percentage < 65;
+    const rowColor = isCrit ? "FEF2F2" : isHigh ? "FFF7ED" : "FFFBEB";
+    const statusColor = isCrit ? "991B1B" : isHigh ? "EA580C" : "D97706";
+
+    return new TableRow({
+      children: [
+        new TableCell({
+          borders: cellBorder,
+          shading: { fill: rowColor, type: ShadingType.CLEAR },
+          children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: String(idx + 1), size: 18, font: "Arial" })] })],
+        }),
+        new TableCell({
+          borders: cellBorder,
+          shading: { fill: rowColor, type: ShadingType.CLEAR },
+          children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: st.rollNo || "-", bold: true, size: 18, font: "Arial" })] })],
+        }),
+        new TableCell({
+          borders: cellBorder,
+          shading: { fill: rowColor, type: ShadingType.CLEAR },
+          children: [new Paragraph({ children: [new TextRun({ text: st.name || "-", bold: true, size: 18, font: "Arial" })] })],
+        }),
+        new TableCell({
+          borders: cellBorder,
+          shading: { fill: rowColor, type: ShadingType.CLEAR },
+          children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: st.className || `Year ${st.year}`, size: 17, font: "Arial" })] })],
+        }),
+        new TableCell({
+          borders: cellBorder,
+          shading: { fill: rowColor, type: ShadingType.CLEAR },
+          children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `${st.attended}/${st.totalHeld}`, size: 18, font: "Arial" })] })],
+        }),
+        new TableCell({
+          borders: cellBorder,
+          shading: { fill: rowColor, type: ShadingType.CLEAR },
+          children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `${st.percentage}%`, bold: true, color: statusColor, size: 19, font: "Arial" })] })],
+        }),
+        new TableCell({
+          borders: cellBorder,
+          shading: { fill: rowColor, type: ShadingType.CLEAR },
+          children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `+${st.daysNeededFor75} days`, size: 17, color: "2563EB", font: "Arial" })] })],
+        }),
+        new TableCell({
+          borders: cellBorder,
+          shading: { fill: rowColor, type: ShadingType.CLEAR },
+          children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: st.parentPhone || "-", size: 18, font: "Arial" })] })],
+        }),
+      ],
+    });
+  });
+
+  const defaultersTable = new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [headerRow, ...studentRows],
+  });
+
+  // Action Directives & University Rules
+  const regulatoryParagraphs = [
+    new Paragraph({
+      spacing: { before: 200, after: 60 },
+      children: [
+        new TextRun({
+          text: "MANDATORY ACTION DIRECTIVES & UNIVERSITY COMPLIANCE:",
+          bold: true,
+          size: 20,
+          color: "1E3A8A",
+          font: "Arial",
+        }),
+      ],
+    }),
+    new Paragraph({
+      bullet: { level: 0 },
+      children: [
+        new TextRun({
+          text: "1. Parent Summoning: ",
+          bold: true,
+          size: 18,
+          font: "Arial",
+        }),
+        new TextRun({
+          text: "Respective Class In-Charges must immediately dispatch formal shortage notices and summon parents of students with <65% attendance.",
+          size: 18,
+          font: "Arial",
+        }),
+      ],
+    }),
+    new Paragraph({
+      bullet: { level: 0 },
+      children: [
+        new TextRun({
+          text: "2. Condonation Eligibility (65% to 74.9%): ",
+          bold: true,
+          size: 18,
+          font: "Arial",
+        }),
+        new TextRun({
+          text: "Shortage may be condoned by the Academic Committee on genuine medical/valid grounds upon submitting valid medical certificates and payment of prescribed condonation fee.",
+          size: 18,
+          font: "Arial",
+        }),
+      ],
+    }),
+    new Paragraph({
+      bullet: { level: 0 },
+      spacing: { after: 200 },
+      children: [
+        new TextRun({
+          text: "3. Detention (< 50%): ",
+          bold: true,
+          color: "991B1B",
+          size: 18,
+          font: "Arial",
+        }),
+        new TextRun({
+          text: "Students securing less than 50% attendance are strictly not eligible for condonation and stand detained from appearing for University End Examinations.",
+          size: 18,
+          color: "991B1B",
+          font: "Arial",
+        }),
+      ],
+    }),
+  ];
+
+  // Signatures Table
+  const signaturesTable = new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({
+        children: [
+          new TableCell({
+            width: { size: 33, type: WidthType.PERCENTAGE },
+            borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } },
+            children: [
+              new Paragraph({ spacing: { before: 400 }, alignment: AlignmentType.CENTER, children: [new TextRun({ text: "_______________________", color: "64748B", size: 18 })] }),
+              new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Class In-Charge / Mentor", bold: true, size: 18, font: "Arial" })] }),
+            ],
+          }),
+          new TableCell({
+            width: { size: 34, type: WidthType.PERCENTAGE },
+            borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } },
+            children: [
+              new Paragraph({ spacing: { before: 400 }, alignment: AlignmentType.CENTER, children: [new TextRun({ text: "_______________________", color: "64748B", size: 18 })] }),
+              new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `Head of Department (${department})`, bold: true, size: 18, font: "Arial" })] }),
+            ],
+          }),
+          new TableCell({
+            width: { size: 33, type: WidthType.PERCENTAGE },
+            borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } },
+            children: [
+              new Paragraph({ spacing: { before: 400 }, alignment: AlignmentType.CENTER, children: [new TextRun({ text: "_______________________", color: "64748B", size: 18 })] }),
+              new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Dean / Principal (GKCE)", bold: true, size: 18, font: "Arial" })] }),
+            ],
+          }),
+        ],
+      }),
+    ],
+  });
+
+  const doc = new Document({
+    sections: [
+      {
+        properties: {
+          page: {
+            margin: {
+              top: 720, // 0.5 inch
+              right: 720,
+              bottom: 720,
+              left: 720,
+            },
+          },
+        },
+        children: [
+          ...letterheadParagraphs,
+          metaTable,
+          new Paragraph({ spacing: { before: 150, after: 100 } }),
+          summaryTable,
+          new Paragraph({
+            spacing: { before: 200, after: 80 },
+            children: [
+              new TextRun({
+                text: `LIST OF STUDENTS WITH ATTENDANCE SHORTAGE (< ${threshold}%):`,
+                bold: true,
+                size: 20,
+                color: "1E3A8A",
+                font: "Arial",
+              }),
+            ],
+          }),
+          defaultersTable,
+          ...regulatoryParagraphs,
+          signaturesTable,
+        ],
+      },
+    ],
+  });
+
+  return await Packer.toBuffer(doc);
+}

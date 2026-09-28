@@ -1,5 +1,4 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Platform } from "react-native";
 
 const STORAGE_KEY_API_URL = "@gkce_parent_api_url";
 
@@ -86,7 +85,17 @@ export const parentApi = {
   setCustomApiUrl,
 
   /**
-   * Request OTP for Parent Phone
+   * Direct Parent Login with Username/Roll No, Phone, and Password
+   */
+  login: ({ username, phone, password, deviceId, deviceModel }) => {
+    return request("/api/parent/auth/login", {
+      method: "POST",
+      body: { username, phone, password, deviceId, deviceModel },
+    });
+  },
+
+  /**
+   * Legacy OTP compatibility
    */
   requestOtp: (phone) => {
     return request("/api/parent/auth/request-otp", {
@@ -95,9 +104,6 @@ export const parentApi = {
     });
   },
 
-  /**
-   * Verify OTP and bind hardware device
-   */
   verifyOtpAndBind: ({ phone, otp, deviceId, deviceModel }) => {
     return request("/api/parent/auth/verify-otp", {
       method: "POST",

@@ -1,0 +1,116 @@
+/* Scope Banner Styles */
+.scope-banner {
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.scope-user-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.user-avatar-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.user-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.user-badge.principal {
+  background-color: var(--purple-light);
+  color: var(--purple);
+  border: 1px solid var(--purple-border);
+}
+
+.user-badge.dean {
+  background-color: var(--info-light);
+  color: var(--info);
+  border: 1px solid var(--info-border);
+}
+
+.user-badge.hod {
+  background-color: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid var(--primary-border);
+}
+
+.scope-description {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.scope-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.filter-select {
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  outline: none;
+  cursor: pointer;
+}
+
+.filter-select:focus {
+  border-color: var(--primary);
+}
+
+@media (max-width: 768px) {
+  .scope-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

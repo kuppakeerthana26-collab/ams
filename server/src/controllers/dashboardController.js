@@ -4,6 +4,7 @@ import Teacher from "../models/Teacher.js";
 import Hod from "../models/Hod.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { getMonthlySheetBuffer } from "../services/excelService.js";
+import { generateDefaultersDocx } from "../services/docExportService.js";
 
 const getTodayString = () => new Date().toISOString().slice(0, 10);
 
@@ -834,3 +835,82 @@ export const exportExcel = asyncHandler(async (req, res) => {
   res.setHeader("Content-Disposition", `attachment; filename=GKCE_${className}_Register.xlsx`);
   res.send(buffer);
 });
+
+/**
+ * 11. Official Word Document (.docx) Export of Defaulters (<75%)
+ * GET /api/dashboard/export/docx?department=CSE&threshold=75
+ */
+export const exportDefaultersDocument = asyncHandler(async (req, res) => {
+  const threshold = parseFloat(req.query.threshold) || 75;
+  let { department = "ALL", year, section } = req.query;
+
+  if (req.user.role === "hod" && req.user.department) {
+    department = req.user.department;
+  }
+
+  const query = { isActive: true };
+  if (department !== "ALL") query.className = new RegExp(`^${department}_`, "i");
+  if (year) query.className = new RegExp(`^[A-Z]+_${year}_`, "i");
+  if (section) query.className = new RegExp(`^[A-Z]+_[0-9]+_${section}$`, "i");
+
+  const [students, allSubmissions] = await Promise.all([
+    Student.find(query).lean(),
+    AttendanceSubmission.find().select("entries").lean(),
+  ]);
+
+  const statsMap = {};
+  allSubmissions.forEach((sub) => {
+    sub.entries.forEach((e) => {
+      const sId = String(e.student);
+      if (!statsMap[sId]) statsMap[sId] = { held: 0, attended: 0 };
+      statsMap[sId].held++;
+      if (e.status === "P") statsMap[sId].attended++;
+    });
+  });
+
+  const defaulters = [];
+  students.forEach((st) => {
+    const sId = String(st._id);
+    const stats = statsMap[sId] || { held: 0, attended: 0 };
+    if (stats.held >= 1) {
+      const pct = Math.round((stats.attended / stats.held) * 1000) / 10;
+      if (pct < threshold) {
+        const daysNeeded = Math.max(0, Math.ceil((threshold / 100 * stats.held - stats.attended) / (1 - threshold / 100)));
+        const parsed = parseClassName(st.className);
+
+        defaulters.push({
+          studentId: st._id,
+          rollNo: st.rollNo,
+          name: st.name,
+          className: st.className,
+          branch: parsed.branch,
+          year: parsed.year,
+          section: parsed.section,
+          parentPhone: st.parentPhone,
+          totalHeld: stats.held,
+          attended: stats.attended,
+          percentage: pct,
+          daysNeededFor75: daysNeeded,
+          riskLevel: pct < 50 ? "CRITICAL" : pct < 65 ? "HIGH" : "WARNING",
+        });
+      }
+    }
+  });
+
+  defaulters.sort((a, b) => a.percentage - b.percentage);
+
+  const docBuffer = await generateDefaultersDocx({
+    department,
+    threshold,
+    defaulters,
+    totalStudents: students.length,
+    generatedBy: req.user.name || "Academic Leadership",
+  });
+
+  const filename = `GKCE_${department}_Attendance_Defaulters_${new Date().toISOString().slice(0, 10)}.docx`;
+
+  res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.send(docBuffer);
+});
+
